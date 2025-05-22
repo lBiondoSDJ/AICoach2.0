@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prompt AI per Giornalisti</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
+        :root {
+            --primary-color: #202840;
+            --secondary-color: #4CAF50;
+            --light-bg: #f5f7fa;
+            --dark-text: #333;
+            --light-text: #fff;
+            --card-bg: #fff;
+            --border-color: #e0e0e0;
+            --shadow-light: rgba(0,0,0,0.08);
+            --shadow-medium: rgba(0,0,0,0.15);
+            --accordion-header-bg: #e9ecef;
+            --accordion-header-hover: #dee2e6;
+            --accordion-border: #ced4da;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--light-bg);
+            margin: 0;
+            padding: 0;
+            color: var(--dark-text);
+            line-height: 1.6;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: var(--light-text);
+            padding: 3rem 1.5rem;
+            text-align: center;
+            box-shadow: 0 4px 15px var(--shadow-medium);
+        }
+
+        header h1 {
+            margin-bottom: 0.5rem;
+            font-size: 2.8rem;
+            font-weight: 700;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        main {
+            max-width: 1000px;
+            margin: 2.5rem auto;
+            padding: 1.5rem;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 5px 20px var(--shadow-light);
+        }
+
+        #filter-container {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+            flex-wrap: wrap;
+        }
+
+        #category-filter, #search-input {
+            flex: 1;
+            min-width: 250px;
+            padding: 0.8rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: var(--card-bg);
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
+        }
+
+        #category-filter:focus, #search-input:focus,
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(32, 40, 64, 0.2);
+        }
+
+        .prompt-card {
+            border: 1px solid var(--accordion-border);
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            background-color: var(--card-bg);
+            box-shadow: 0 2px 10px var(--shadow-light);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background-color: var(--accordion-header-bg);
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--accordion-border);
+            transition: background-color 0.2s ease;
+        }
+
+        .card-header:hover {
+            background-color: var(--accordion-header-hover);
+        }
+
+        .card-header h3 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .card-header .icon {
+            font-size: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .card-header.open .icon {
+            transform: rotate(180deg);
+        }
+
+        .card-content {
+            padding: 1.5rem;
+            display: none; /* Nascosto di default */
+            border-top: none;
+        }
+        
+        .card-content.open {
+            display: block; /* Mostrato quando ha la classe open */
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .prompt-card p {
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+            color: #555;
+        }
+
+        label {
+            font-weight: 600;
+            display: block;
+            margin-top: 1.2rem;
+            margin-bottom: 0.4rem;
+            color: var(--primary-color);
+            font-size: 0.95rem;
+        }
+
+        input, textarea, select {
+            width: calc(100% - 20px);
+            padding: 0.8rem 10px;
+            margin-top: 0.4rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.8rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: var(--light-text);
+            border: none;
+            padding: 0.8rem 1.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        button:hover {
+            background-color: #1a2235;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        .copy-button {
+            background-color: var(--secondary-color);
+            color: var(--light-text);
+            border: 2px solid var(--secondary-color);
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .copy-button:hover {
+            background-color: #449d48;
+            border-color: #449d48;
+        }
+
+        .prompt-output {
+            background-color: #eef2f6;
+            padding: 1.2rem;
+            margin-top: 1.5rem;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 0.95rem;
+            color: #444;
+            border: 1px dashed var(--border-color);
+        }
+
+        .note {
+            font-size: 0.9rem;
+            color: #666;
+            background-color: #ffeccf;
+            border-left: 4px solid #ffc107;
+            padding: 0.8rem;
+            border-radius: 5px;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2rem;
+            }
+
+            main {
+                margin: 1.5rem auto;
+                padding: 1rem;
+            }
+
+            #filter-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .button-group {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Generatore di Prompt AI per Giornalisti</h1>
+        <p>Personalizza i tuoi prompt per l'intelligenza artificiale a partire da template professionali.</p>
+    </header>
+    <main>
+        <div id="filter-container">
+            <select id="category-filter">
+                <option value="">Tutte le categorie</option>
+            </select>
+            <input type="text" id="search-input" placeholder="Cerca prompt per titolo o descrizione..." />
+        </div>
+        <div id="prompt-container"></div>
+    </main>
+
+    <script>
+        // NON più la chiave API qui. Verrà gestita dalla Netlify Function.
+        const sheetID = "1uDoHvedmUcczP4rjI0GNZWOWstMPfhYuUahNPPbMoxg";
+        const sheetRange = "Prompt Prestabiliti!A2:G"; // <-- Il range rimane lo stesso
+
+        // L'URL della tua Netlify Function
+        // Il nome della funzione è 'fetch-sheets-data' (il nome del file che hai creato senza .js)
+        const NETLIFY_FUNCTION_URL = "/.netlify/functions/get-my-sheets";
+
+        async function fetchPrompts() {
+            try {
+                // Passiamo sheetID e sheetRange alla funzione Netlify come parametri di query
+                const url = `${NETLIFY_FUNCTION_URL}?sheetId=${sheetID}&sheetRange=${encodeURIComponent(sheetRange)}`;
+                
+                console.log("DEBUG: 1. Sto provando a scaricare i prompt da URL (Netlify Function):", url); // Debug
+                
+                const res = await fetch(url);
+                
+                if (!res.ok) {
+                    const errorData = await res.json(); // La funzione Netlify restituisce JSON anche in caso di errore
+                    console.error(`DEBUG: 2. Errore nella risposta della Netlify Function: ${res.status}. Dettagli:`, errorData); // Debug
+                    throw new Error(`Errore nel caricamento dei dati: ${errorData.error || res.statusText}`);
+                }
+                
+                const data = await res.json(); // I dati arrivano dalla funzione Netlify
+                console.log("DEBUG: 3. Dati RAW ricevuti dalla Netlify Function:", data); // Debug
+                
+                if (!data.values || data.values.length === 0) {
+                    console.warn("DEBUG: 4. Nessun dato 'values' trovato nel foglio o foglio vuoto."); // Debug
+                }
+                return data.values || [];
+            } catch (error) {
+                console.error("DEBUG: 5. Errore CATCH durante il recupero dei prompt dalla Netlify Function:", error); // Debug
+                alert("Si è verificato un errore nel caricamento dei prompt. Riprova più tardi o controlla la configurazione della funzione Netlify.");
+                return [];
+            }
+        }
+
+        function creaCard(titolo, descrizione, promptTemplate, categoria, labelTesto, placeholderText, labelLang, index) {
+            console.log(`DEBUG: 6. CreaCard chiamata per "${titolo}" - promptTemplate: "${promptTemplate}" - labelLang (Col. G): "${labelLang}"`); // Debug
+
+            const card = document.createElement("div");
+            card.className = "prompt-card";
+            card.dataset.categoria = categoria?.toLowerCase() || "";
+
+            const cardHeader = document.createElement("div");
+            cardHeader.className = "card-header";
+            cardHeader.setAttribute("role", "button");
+            cardHeader.setAttribute("aria-expanded", "false");
+            cardHeader.setAttribute("tabindex", "0");
+
+            const headerTitle = document.createElement("h3");
+            headerTitle.textContent = titolo;
+
+            const icon = document.createElement("span");
+            icon.className = "icon";
+            icon.innerHTML = "&#9660;";
+
+            cardHeader.appendChild(headerTitle);
+            cardHeader.appendChild(icon);
+
+            const cardContent = document.createElement("div");
+            cardContent.className = "card-content";
+            cardContent.setAttribute("aria-hidden", "true");
+
+            const descElement = document.createElement("p");
+            descElement.textContent = descrizione;
+
+            const esperienzaLabel = document.createElement("label");
+            esperienzaLabel.textContent = "Tema o campo di esperienza principale:";
+            const esperienzaInput = document.createElement("input");
+            esperienzaInput.placeholder = "es. economia, esteri, politica...";
+            esperienzaInput.id = `esperienza-${index}`;
+
+            const genereLabel = document.createElement("label");
+            genereLabel.textContent = "Genere di giornalismo:";
+            const genereInput = document.createElement("input");
+            genereInput.placeholder = "es. cronaca, cultura, sport...";
+            genereInput.id = `genere-${index}`;
+
+            const testataLabel = document.createElement("label");
+            testataLabel.textContent = "Nome della testata:";
+            const testataInput = document.createElement("input");
+            testataInput.placeholder = "es. Il Sole 24 Ore, La Repubblica...";
+            testataInput.id = `testata-${index}`;
+
+            const output = document.createElement("div");
+            output.className = "prompt-output";
+            output.textContent = "Il prompt personalizzato apparirà qui dopo la generazione.";
+
+            const buttonGroup = document.createElement("div");
+            buttonGroup.className = "button-group";
+
+            const button = document.createElement("button");
+            button.textContent = "Genera prompt";
+            button.onclick = () => {
+                let finalPrompt = promptTemplate
+                    .replace(/\[ESPERIENZA\]/g, esperienzaInput.value || "[ESPERIENZA]")
+                    .replace(/\[GENERE\]/g, genereInput.value || "[GENERE]")
+                    .replace(/\[TESTATA\]/g, testataInput.value || "[TESTATA]");
+
+                const textAreaInput = cardContent.querySelector(`#area-text-${index}`);
+                if (textAreaInput) {
+                    finalPrompt = finalPrompt.replace(/\[AREA_TEXT\]/g, textAreaInput.value || "[AREA_TEXT]");
+                } else {
+                    finalPrompt = finalPrompt.replace(/\[AREA_TEXT\]/g, '');
+                }
+
+                const langSelect = cardContent.querySelector(`#lang-${index}`);
+                if (langSelect) {
+                    finalPrompt = finalPrompt.replace(/\[LANG\]/g, langSelect.value || "[LANG]");
+                } else {
+                     finalPrompt = finalPrompt.replace(/\[LANG\]/g, '');
+                }
+
+                if (promptTemplate.includes("[DETTAGLI]")) {
+                    const dettagliInput = cardContent.querySelector(`#dettagli-${index}`);
+                    finalPrompt = finalPrompt.replace(/\[DETTAGLI\]/g, dettagliInput ? dettagliInput.value || "[DETTAGLI]" : "[DETTAGLI]");
+                }
+
+                output.textContent = finalPrompt;
+            };
+
+            const copyButton = document.createElement("button");
+            copyButton.textContent = "Copia prompt";
+            copyButton.className = "copy-button";
+            copyButton.onclick = () => {
+                const tempTextarea = document.createElement("textarea");
+                tempTextarea.value = output.textContent;
+                document.body.appendChild(tempTextarea);
+                tempTextarea.select();
+                document.execCommand("copy");
+                document.body.removeChild(tempTextarea);
+                copyButton.textContent = "Copiato!";
+                setTimeout(() => copyButton.textContent = "Copia prompt", 1500);
+            };
+
+            cardContent.appendChild(descElement);
+            cardContent.appendChild(esperienzaLabel);
+            cardContent.appendChild(esperienzaInput);
+            cardContent.appendChild(genereLabel);
+            cardContent.appendChild(genereInput);
+            cardContent.appendChild(testataLabel);
+            cardContent.appendChild(testataInput);
+
+            const shouldShowTextArea = promptTemplate.includes("[AREA_TEXT]");
+
+            if (shouldShowTextArea) {
+                console.log(`DEBUG: 7. Card "${titolo}" include [AREA_TEXT]. Aggiungo campo testo.`); // Debug
+                const testoLabel = document.createElement("label");
+                const testoInput = document.createElement("textarea");
+                testoInput.rows = 4;
+                testoInput.id = `area-text-${index}`;
+                
+                testoLabel.textContent = typeof labelTesto === 'string' && labelTesto.trim() !== '' ? labelTesto : "Incolla qui il testo da elaborare:";
+                testoInput.placeholder = typeof placeholderText === 'string' && placeholderText.trim() !== '' ? placeholderText : "Incolla qui il testo...";
+
+                cardContent.appendChild(testoLabel);
+                cardContent.appendChild(testoInput);
+            }
+
+            // Aggiungo il campo lingua se [LANG] è nel promptTemplate
+            if (promptTemplate.includes("[LANG]")) {
+                console.log(`DEBUG: 8. Card "${titolo}" include [LANG]. Aggiungo menu a discesa lingua.`); // Debug
+                const langLabel = document.createElement("label");
+                langLabel.textContent = typeof labelLang === 'string' && labelLang.trim() !== '' ? labelLang : "Lingua di destinazione:"; 
+                const langSelect = document.createElement("select");
+                langSelect.id = `lang-${index}`;
+
+                const lingue = [
+                    "Italiano",
+                    "Inglese USA",
+                    "Inglese UK",
+                    "Afrikaans", "Arabo", "Bengali", "Cinese", "Danese", "Ebraico", "Finlandese",
+                    "Francese", "Giapponese", "Hindi", "Indonesiano", "Olandese", "Persiano",
+                    "Polacco", "Portoghese", "Russo", "Spagnolo", "Svedese", "Thai", "Turco", "Vietnamita"
+                ];
+
+                const sortedOtherLanguages = lingue.filter(lang => !["Italiano", "Inglese USA", "Inglese UK"].includes(lang)).sort();
+                const orderedLanguages = ["Italiano", "Inglese USA", "Inglese UK", ...sortedOtherLanguages];
+
+                orderedLanguages.forEach(lingua => {
+                    const option = document.createElement("option");
+                    option.value = lingua;
+                    option.textContent = lingua;
+                    langSelect.appendChild(option);
+                });
+
+                cardContent.appendChild(langLabel);
+                cardContent.appendChild(langSelect);
+            } else {
+                console.log(`DEBUG: 9. Card "${titolo}" NON include [LANG]. NON aggiungo menu a discesa lingua.`); // Debug
+            }
+
+             if (titolo === "Correggi testi da allegati PDF" || titolo === "Correzione bozze") {
+                const note = document.createElement("p");
+                note.className = "note";
+                note.textContent = "Ricordati di fornire il file o il testo da correggere alla tua IA di fiducia insieme al tuo prompt.";
+                cardContent.appendChild(note);
+            } else if (titolo === "Ricava testi da allegati") {
+                const note = document.createElement("p");
+                note.className = "note";
+                note.textContent = "Ricordati di fornire il file da cui vuoi che l'AI ricavi il testo (può essere un png, un jpg, un pdf...).";
+                cardContent.appendChild(note);
+
+                const dettagliLabel = document.createElement("label");
+                dettagliLabel.textContent = "Altri dettagli (se presenti nel prompt originale):";
+                const dettagliInput = document.createElement("input");
+                dettagliInput.placeholder = "aggiungere qui personalizzazioni per lo specifico caso/documento";
+                dettagliInput.id = `dettagli-${index}`;
+                cardContent.appendChild(dettagliLabel);
+                cardContent.appendChild(dettagliInput);
+            }
+
+            buttonGroup.appendChild(button);
+            buttonGroup.appendChild(copyButton);
+            cardContent.appendChild(buttonGroup);
+            cardContent.appendChild(output);
+
+            card.appendChild(cardHeader);
+            card.appendChild(cardContent);
+
+            cardHeader.onclick = () => {
+                const isOpen = cardContent.style.display === "block";
+                if (isOpen) {
+                    cardContent.style.display = "none";
+                    cardHeader.classList.remove("open");
+                    cardContent.classList.remove("open");
+                    cardHeader.setAttribute("aria-expanded", "false");
+                    cardContent.setAttribute("aria-hidden", "true");
+                } else {
+                    document.querySelectorAll('.card-content.open').forEach(openContent => {
+                        openContent.style.display = "none";
+                        openContent.classList.remove("open");
+                        openContent.previousElementSibling.classList.remove("open");
+                        openContent.previousElementSibling.setAttribute("aria-expanded", "false");
+                        openContent.setAttribute("aria-hidden", "true");
+                    });
+
+                    cardContent.style.display = "block";
+                    cardHeader.classList.add("open");
+                    cardContent.classList.add("open");
+                    cardHeader.setAttribute("aria-expanded", "true");
+                    cardContent.setAttribute("aria-hidden", "false");
+                }
+            };
+            
+            cardHeader.onkeydown = (event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    cardHeader.click();
+                }
+            };
+
+            return card;
+        }
+
+        async function init() {
+            const container = document.getElementById("prompt-container");
+            const prompts = await fetchPrompts(); // Chiamata per scaricare i prompt
+
+            if (prompts.length === 0) {
+                console.error("DEBUG: 10. La lista dei prompt è vuota. Non posso creare le categorie o renderizzare le card."); // Debug
+                container.innerHTML = '<p style="text-align: center; color: #cc0000; font-weight: bold; margin-top: 3rem;">Errore: Impossibile caricare i prompt dal Google Sheet. Verifica la configurazione della funzione Netlify.</p>';
+                return; // Ferma l'esecuzione se non ci sono dati
+            }
+
+            const categorieUniche = new Set();
+            prompts.forEach(row => {
+                const cat = row[3]; // Colonna D (categoria)
+                if (cat) categorieUniche.add(cat.toLowerCase());
+            });
+            const categoryFilter = document.getElementById("category-filter");
+            Array.from(categorieUniche).sort().forEach(cat => {
+                const option = document.createElement("option");
+                option.value = cat;
+                option.textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
+                categoryFilter.appendChild(option);
+            });
+
+            function renderCards(filterCategoria = "", searchTerm = "") {
+                container.innerHTML = "";
+                const filteredPrompts = prompts.filter((row) => { 
+                    if (row.length < 6) { 
+                        console.warn("DEBUG: 11. Riga del foglio con meno di 6 colonne, saltata in fase di filtro:", row); 
+                        return false; 
+                    }
+                    const [titolo, descrizione, prompt, categoria, labelTesto, placeholderText, labelLang] = row; 
+                    
+                    const matchesCategory = !filterCategoria || (categoria && categoria.toLowerCase() === filterCategoria);
+                    const matchesSearch = !searchTerm || 
+                                          (titolo && titolo.toLowerCase().includes(searchTerm)) || 
+                                          (descrizione && descrizione.toLowerCase().includes(searchTerm));
+                    return matchesCategory && matchesSearch;
+                });
+
+                if (filteredPrompts.length === 0) {
+                    console.log("DEBUG: 12. Nessun prompt trovato dopo il filtro."); 
+                    container.innerHTML = '<p style="text-align: center; color: #666; font-style: italic; margin-top: 3rem;">Nessun prompt trovato con i criteri di ricerca selezionati.</p>';
+                } else {
+                    console.log(`DEBUG: 13. Trovati ${filteredPrompts.length} prompt da renderizzare.`); 
+                    filteredPrompts.forEach((row, i) => {
+                        const [titolo, descrizione, prompt, categoria, labelTesto, placeholderText, labelLang] = row; 
+                        const card = creaCard(titolo, descrizione, prompt, categoria, labelTesto, placeholderText, labelLang, i); 
+                        container.appendChild(card);
+                    });
+                }
+            }
+
+            categoryFilter.addEventListener("change", () => {
+                renderCards(categoryFilter.value, document.getElementById("search-input").value.toLowerCase());
+            });
+
+            document.getElementById("search-input").addEventListener("input", e => {
+                renderCards(categoryFilter.value, e.target.value.toLowerCase());
+            });
+
+            renderCards(); // Prima renderizzazione all'avvio
+        }
+
+        init();
+    </script>
+</body>
+</html>
