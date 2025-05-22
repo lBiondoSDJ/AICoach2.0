@@ -1,15 +1,10 @@
 {
-  "name": "functions",
+  "name": "get-my-sheets-function",
   "version": "1.0.0",
-  "main": "Workspace-sheets-data.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "description": "Netlify Function to fetch data from Google Sheets",
+  "main": "get-my-sheets.js",
   "dependencies": {
-    "node-fetch": "^2.7.0"
+    "node-fetch": "^2.6.1",
+    "google-auth-library": "^9.0.0"
   }
 }
