@@ -25,6 +25,7 @@
             --feedback-button-hover: #449d48; /* tonalità più scura del verde */
             --content-max-width: 900px; /* Larghezza massima desiderata per il contenuto */
             --main-padding: 1.5rem; /* Padding interno standard per main e feedback-section */
+            --bottom-spacing: 3rem; /* Spazio extra sotto le card */
         }
 
         body {
@@ -70,7 +71,7 @@
         .main-content-wrapper {
             max-width: var(--content-max-width); /* Imposta la larghezza massima del contenuto */
             margin: 0 auto; /* Centra il contenitore */
-            padding: 0 var(--main-padding); /* Aggiunge padding ai lati */
+            padding: 0 var(--main-padding) var(--bottom-spacing); /* Aggiunge padding ai lati e sotto */
             background: var(--card-bg);
             border-radius: 12px;
             box-shadow: 0 5px 20px var(--shadow-light);
@@ -306,6 +307,11 @@
             .main-content-wrapper, .feedback-section {
                 margin: 1.5rem auto;
                 padding: 1rem; /* Riduci il padding per schermi piccoli */
+            }
+
+            /* Assicurati che lo spazio sotto sia ridotto anche su mobile se necessario */
+            .main-content-wrapper {
+                padding-bottom: 1.5rem; /* Adatta lo spazio per mobile */
             }
 
             #filter-container {
