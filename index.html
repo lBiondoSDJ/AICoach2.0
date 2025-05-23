@@ -23,6 +23,8 @@
             /* Colore per il feedback button ora è lo stesso del secondary-color (verde) */
             --feedback-button-color: var(--secondary-color); 
             --feedback-button-hover: #449d48; /* tonalità più scura del verde */
+            --content-max-width: 900px; /* Larghezza massima desiderata per il contenuto */
+            --main-padding: 1.5rem; /* Padding interno standard per main e feedback-section */
         }
 
         body {
@@ -40,7 +42,7 @@
         header {
             background-color: var(--primary-color);
             color: var(--light-text);
-            padding: 3rem 1.5rem;
+            padding: 3rem var(--main-padding); /* Usa la variabile per il padding */
             text-align: center;
             box-shadow: 0 4px 15px var(--shadow-medium);
         }
@@ -56,14 +58,23 @@
             opacity: 0.9;
         }
 
+        /* Il main diventa un contenitore che si estende per tutta la larghezza */
         main {
-            max-width: 1000px;
-            margin: 2.5rem auto;
-            padding: 1.5rem;
+            width: 100%; /* Estende su tutta la larghezza disponibile */
+            padding: 2.5rem 0; /* Padding verticale, padding orizzontale gestito da .main-content */
+            flex-grow: 1; 
+            box-sizing: border-box; /* Include padding e border nella larghezza */
+        }
+
+        /* Nuovo contenitore interno per il contenuto principale */
+        .main-content-wrapper {
+            max-width: var(--content-max-width); /* Imposta la larghezza massima del contenuto */
+            margin: 0 auto; /* Centra il contenitore */
+            padding: 0 var(--main-padding); /* Aggiunge padding ai lati */
             background: var(--card-bg);
             border-radius: 12px;
             box-shadow: 0 5px 20px var(--shadow-light);
-            flex-grow: 1; 
+            box-sizing: border-box;
         }
 
         #filter-container {
@@ -71,6 +82,7 @@
             gap: 1.5rem;
             margin-bottom: 2.5rem;
             flex-wrap: wrap;
+            padding-top: var(--main-padding); /* Spazio sopra il filtro */
         }
 
         #category-filter, #search-input {
@@ -242,17 +254,17 @@
             margin-top: 1rem;
         }
         
-        /* Stili per la nuova sezione Feedback */
+        /* Stili per la sezione Feedback */
         .feedback-section {
-            width: 100%; /* Larghezza piena */
-            max-width: 1000px; /* Stessa larghezza del main */
+            width: 100%; 
+            max-width: var(--content-max-width); /* Allineato alla larghezza del contenuto principale */
             margin: 2.5rem auto; 
-            padding: 1.5rem;
+            padding: var(--main-padding); /* Stesso padding della larghezza del contenuto */
             background: var(--card-bg);
             border-radius: 12px;
             box-shadow: 0 5px 20px var(--shadow-light);
             text-align: center; 
-            box-sizing: border-box; /* Include padding e border nella larghezza */
+            box-sizing: border-box; 
         }
 
         .feedback-section p {
@@ -291,14 +303,15 @@
                 font-size: 2rem;
             }
 
-            main, .feedback-section {
+            .main-content-wrapper, .feedback-section {
                 margin: 1.5rem auto;
-                padding: 1rem;
+                padding: 1rem; /* Riduci il padding per schermi piccoli */
             }
 
             #filter-container {
                 flex-direction: column;
                 gap: 1rem;
+                padding-top: 1rem;
             }
 
             .button-group {
@@ -318,13 +331,15 @@
         <p>Personalizza i tuoi prompt per l'intelligenza artificiale a partire da template professionali.</p>
     </header>
     <main>
-        <div id="filter-container">
-            <select id="category-filter">
-                <option value="">Tutte le categorie</option>
-            </select>
-            <input type="text" id="search-input" placeholder="Cerca prompt per titolo o descrizione..." />
+        <div class="main-content-wrapper">
+            <div id="filter-container">
+                <select id="category-filter">
+                    <option value="">Tutte le categorie</option>
+                </select>
+                <input type="text" id="search-input" placeholder="Cerca prompt per titolo o descrizione..." />
+            </div>
+            <div id="prompt-container"></div>
         </div>
-        <div id="prompt-container"></div>
     </main>
 
     <div class="feedback-section">
@@ -349,7 +364,7 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ sheetId: sheetID, sheetRange: sheetRange }),
+                    body: JSON.stringify({ sheetId: sheetID, sheetRange: sheetRange }), // Qui vengono passati i dati
                 });
                 
                 console.log("DEBUG: 1. Sto provando a scaricare i prompt da Netlify Function."); 
