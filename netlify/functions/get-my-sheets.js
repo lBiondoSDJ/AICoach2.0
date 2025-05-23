@@ -1,68 +1,74 @@
-// netlify/functions/fetch-sheets-data.js
+// .netlify/functions/get-my-sheets.js
+const { google } = require('googleapis');
 
-const { GoogleAuth } = require('google-auth-library'); // Non useremo GoogleAuth per API Key pubblica
-const { google } = require('googleapis'); // Non useremo googleapis per API Key pubblica
-const fetch = require('node-fetch'); // Per fare chiamate HTTP da Node.js
-
-// Importante: La tua API Key NON deve essere qui. Verrà letta dalle variabili d'ambiente.
-
-exports.handler = async function(event, context) {
-  // Debug: Stampa l'URL del foglio e il range che ti aspetti dal client
-  console.log("Function invoked.");
-  console.log("Sheet ID from client:", event.queryStringParameters.sheetId);
-  console.log("Sheet Range from client:", event.queryStringParameters.sheetRange);
-
-  // Recupera la API Key dalle variabili d'ambiente di Netlify.
-  // Assicurati che il nome 'GOOGLE_SHEETS_API_KEY' corrisponda a quello che configurerai in Netlify.
-  const apiKey = process.env.GOOGLE_SHEETS_API_KEY;
-
-  if (!apiKey) {
-    console.error("GOOGLE_SHEETS_API_KEY non è configurata come variabile d'ambiente.");
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: "Server configuration error: API Key missing." }),
-    };
-  }
-
-  // Costruisce l'URL per l'API di Google Sheets utilizzando i parametri passati dal frontend
-  // e la API Key sicura.
-  const sheetID = event.queryStringParameters.sheetId;
-  const sheetRange = event.queryStringParameters.sheetRange;
-
-  if (!sheetID || !sheetRange) {
-      console.error("Parametri sheetId o sheetRange mancanti dalla richiesta del client.");
-      return {
-          statusCode: 400,
-          body: JSON.stringify({ error: "Missing required parameters: sheetId or sheetRange." }),
-      };
-  }
-
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetID}/values/${sheetRange}?key=${apiKey}`;
-  console.log("Calling Google Sheets API URL:", url); // Debug: l'URL della chiamata all'API Sheets
-
-  try {
-    const response = await fetch(url);
-    const data = await response.json();
-
-    if (!response.ok) {
-        console.error("Error from Google Sheets API:", data);
+exports.handler = async (event) => {
+    // Solo le richieste POST sono accettate
+    if (event.httpMethod !== 'POST') {
         return {
-            statusCode: response.status,
-            body: JSON.stringify({ error: data.error.message || "Error fetching data from Google Sheets." }),
+            statusCode: 405,
+            body: JSON.stringify({ error: 'Method Not Allowed', message: 'Only POST requests are supported.' }),
         };
     }
-    
-    // Ritorna i dati al frontend
-    return {
-      statusCode: 200,
-      body: JSON.stringify(data),
-    };
 
-  } catch (error) {
-    console.error("Serverless Function error:", error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: "Failed to fetch data due to serverless function error." }),
-    };
-  }
+    let sheetId, sheetRange;
+    try {
+        // Parsifica il corpo JSON della richiesta
+        const body = JSON.parse(event.body);
+        sheetId = body.sheetId;
+        sheetRange = body.sheetRange;
+    } catch (parseError) {
+        console.error('Failed to parse request body:', parseError);
+        return {
+            statusCode: 400,
+            body: JSON.stringify({ error: 'Bad Request', message: 'Invalid JSON body.' }),
+        };
+    }
+
+    // Assicurati che sheetId e sheetRange siano presenti
+    if (!sheetId || !sheetRange) {
+        // Questo è il log che stai vedendo ora
+        console.error('Parametri sheetId o sheetRange mancanti dalla richiesta del client.');
+        return {
+            statusCode: 400,
+            body: JSON.stringify({ error: 'Bad Request', message: 'Missing sheetId or sheetRange in request body.' }),
+        };
+    }
+
+    // La Google API Key è ora in una variabile d'ambiente Netlify
+    const apiKey = process.env.GOOGLE_SHEETS_API_KEY;
+
+    if (!apiKey) {
+        console.error('GOOGLE_SHEETS_API_KEY non configurata nelle variabili d\'ambiente Netlify.');
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: 'Server Error', message: 'API key not configured.' }),
+        };
+    }
+
+    const sheets = google.sheets({ version: 'v4', auth: apiKey });
+
+    try {
+        const response = await sheets.spreadsheets.values.get({
+            spreadsheetId: sheetId,
+            range: sheetRange,
+        });
+
+        return {
+            statusCode: 200,
+            headers: {
+                'Content-Type': 'application/json',
+                // Per sicurezza, puoi specificare il tuo dominio Netlify al posto di '*'
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'POST, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type',
+            },
+            body: JSON.stringify(response.data),
+        };
+    } catch (error) {
+        console.error('Errore durante il recupero dei dati da Google Sheets:', error);
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: 'Failed to fetch data from Google Sheets', details: error.message }),
+        };
+    }
 };
