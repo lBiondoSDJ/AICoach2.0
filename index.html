@@ -21,7 +21,7 @@
             --accordion-header-hover: #dee2e6;
             --accordion-border: #ced4da;
             /* Colore per il feedback button ora è lo stesso del secondary-color (verde) */
-            --feedback-button-color: var(--secondary-color); 
+            --feedback-button-color: var(--secondary-color);
             --feedback-button-hover: #449d48; /* tonalità più scura del verde */
             --content-max-width: 900px; /* Larghezza massima desiderata per il contenuto */
             --main-padding: 1.5rem; /* Padding interno standard per main e feedback-section */
@@ -35,9 +35,9 @@
             padding: 0;
             color: var(--dark-text);
             line-height: 1.6;
-            display: flex; 
-            flex-direction: column; 
-            min-height: 100vh; 
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
 
         header {
@@ -63,7 +63,7 @@
         main {
             width: 100%; /* Estende su tutta la larghezza disponibile */
             padding: 2.5rem 0; /* Padding verticale, padding orizzontale gestito da .main-content */
-            flex-grow: 1; 
+            flex-grow: 1;
             box-sizing: border-box; /* Include padding e border nella larghezza */
         }
 
@@ -146,12 +146,12 @@
 
         .card-content {
             padding: 1.5rem;
-            display: none; 
+            display: none;
             border-top: none;
         }
         
         .card-content.open {
-            display: block; 
+            display: block;
             animation: slideDown 0.3s ease-out;
         }
 
@@ -257,15 +257,15 @@
         
         /* Stili per la sezione Feedback */
         .feedback-section {
-            width: 100%; 
+            width: 100%;
             max-width: var(--content-max-width); /* Allineato alla larghezza del contenuto principale */
-            margin: 2.5rem auto; 
+            margin: 2.5rem auto;
             padding: var(--main-padding); /* Stesso padding della larghezza del contenuto */
             background: var(--card-bg);
             border-radius: 12px;
             box-shadow: 0 5px 20px var(--shadow-light);
-            text-align: center; 
-            box-sizing: border-box; 
+            text-align: center;
+            box-sizing: border-box;
         }
 
         .feedback-section p {
@@ -275,7 +275,7 @@
         }
 
         .feedback-button {
-            background-color: var(--feedback-button-color); 
+            background-color: var(--feedback-button-color);
             color: var(--light-text);
             border: none;
             padding: 1rem 2rem;
@@ -283,8 +283,8 @@
             cursor: pointer;
             font-size: 1.1rem;
             font-weight: 600;
-            text-decoration: none; 
-            display: inline-block; 
+            text-decoration: none;
+            display: inline-block;
             transition: background-color 0.2s ease, transform 0.1s ease;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
@@ -298,6 +298,39 @@
             transform: translateY(0);
             box-shadow: none;
         }
+
+        /* --- INIZIO AGGIUNTE PER SPINNER --- */
+        /* Stili per lo Spinner */
+        .spinner-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100px; /* Assicura che ci sia spazio per lo spinner */
+            margin-top: 2rem;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: var(--primary-color); /* Colore dello spinner */
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin-right: 10px; /* Spazio tra spinner e testo */
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Classe per nascondere il caricamento */
+        .hidden {
+            display: none !important;
+        }
+        /* --- FINE AGGIUNTE PER SPINNER --- */
 
         @media (max-width: 768px) {
             header h1 {
@@ -344,15 +377,20 @@
                 </select>
                 <input type="text" id="search-input" placeholder="Cerca prompt per titolo o descrizione..." />
             </div>
-            <div id="prompt-container"></div>
+            <div id="prompt-container">
+                <div id="loading-spinner" class="spinner-container">
+                    <div class="spinner"></div>
+                    <span>Caricamento prompt...</span>
+                </div>
+                </div>
         </div>
     </main>
 
     <div class="feedback-section">
         <p>Cosa ne pensi dopo i primi test?</p>
-        <a href="https://docs.google.com/forms/d/e/1FAIpQLScxgkTY3S5rRAOpGjGteuPzDX41UpNshxmEpKzge__ASIplVA/viewform?usp=dialog" 
-           target="_blank" 
-           class="feedback-button">Lascia un Feedback</a>
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLScxgkTY3S5rRAOpGjGteuPzDX41UpNshxmEpKzge__ASIplVA/viewform?usp=dialog"
+            target="_blank"
+            class="feedback-button">Lascia un Feedback</a>
     </div>
 
     <script>
@@ -363,7 +401,18 @@
         // L'URL della tua Netlify Function
         const NETLIFY_FUNCTION_URL = "/.netlify/functions/get-my-sheets";
 
+        // --- INIZIO AGGIUNTE PER SPINNER ---
+        const promptContainer = document.getElementById("prompt-container");
+        const loadingSpinner = document.getElementById("loading-spinner");
+        // --- FINE AGGIUNTE PER SPINNER ---
+
         async function fetchPrompts() {
+            // --- INIZIO MODIFICHE PER SPINNER ---
+            // Mostra lo spinner prima di iniziare il fetch
+            loadingSpinner.classList.remove("hidden");
+            promptContainer.innerHTML = ''; // Pulisci il container per sicurezza prima di mostrare lo spinner
+            // --- FINE MODIFICHE PER SPINNER ---
+
             try {
                 const response = await fetch(NETLIFY_FUNCTION_URL, {
                     method: 'POST',
@@ -373,30 +422,35 @@
                     body: JSON.stringify({ sheetId: sheetID, sheetRange: sheetRange }), // Qui vengono passati i dati
                 });
                 
-                console.log("DEBUG: 1. Sto provando a scaricare i prompt da Netlify Function."); 
+                console.log("DEBUG: 1. Sto provando a scaricare i prompt da Netlify Function.");
                 
                 if (!response.ok) {
-                    const errorData = await response.json(); 
-                    console.error(`DEBUG: 2. Errore nella risposta della Netlify Function: ${response.status}. Dettagli:`, errorData); 
+                    const errorData = await response.json();
+                    console.error(`DEBUG: 2. Errore nella risposta della Netlify Function: ${response.status}. Dettagli:`, errorData);
                     throw new Error(`Errore nel caricamento dei dati: ${errorData.error || response.statusText}`);
                 }
                 
-                const data = await response.json(); 
-                console.log("DEBUG: 3. Dati RAW ricevuti dalla Netlify Function:", data); 
+                const data = await response.json();
+                console.log("DEBUG: 3. Dati RAW ricevuti dalla Netlify Function:", data);
                 
                 if (!data.values || data.values.length === 0) {
-                    console.warn("DEBUG: 4. Nessun dato 'values' trovato nel foglio o foglio vuoto."); 
+                    console.warn("DEBUG: 4. Nessun dato 'values' trovato nel foglio o foglio vuoto.");
                 }
                 return data.values || [];
             } catch (error) {
-                console.error("DEBUG: 5. Errore CATCH durante il recupero dei prompt dalla Netlify Function:", error); 
+                console.error("DEBUG: 5. Errore CATCH durante il recupero dei prompt dalla Netlify Function:", error);
                 alert("Si è verificato un errore nel caricamento dei prompt. Riprova più tardi o controlla la configurazione della funzione Netlify.");
                 return [];
+            } finally {
+                // --- INIZIO MODIFICHE PER SPINNER ---
+                // Nascondi lo spinner una volta che il fetch è completato (sia successo che fallimento)
+                loadingSpinner.classList.add("hidden");
+                // --- FINE MODIFICHE PER SPINNER ---
             }
         }
 
         function creaCard(titolo, descrizione, promptTemplate, categoria, labelTesto, placeholderText, labelLang, index) {
-            console.log(`DEBUG: 6. CreaCard chiamata per "${titolo}" - promptTemplate: "${promptTemplate}" - labelLang (Col. G): "${labelLang}"`); 
+            console.log(`DEBUG: 6. CreaCard chiamata per "${titolo}" - promptTemplate: "${promptTemplate}" - labelLang (Col. G): "${labelLang}"`);
 
             const card = document.createElement("div");
             card.className = "prompt-card";
@@ -505,7 +559,7 @@
             const shouldShowTextArea = promptTemplate.includes("[AREA_TEXT]");
 
             if (shouldShowTextArea) {
-                console.log(`DEBUG: 7. Card "${titolo}" include [AREA_TEXT]. Aggiungo campo testo.`); 
+                console.log(`DEBUG: 7. Card "${titolo}" include [AREA_TEXT]. Aggiungo campo testo.`);
                 const testoLabel = document.createElement("label");
                 const testoInput = document.createElement("textarea");
                 testoInput.rows = 4;
@@ -520,9 +574,9 @@
 
             // Aggiungo il campo lingua se [LANG] è nel promptTemplate
             if (promptTemplate.includes("[LANG]")) {
-                console.log(`DEBUG: 8. Card "${titolo}" include [LANG]. Aggiungo menu a discesa lingua.`); 
+                console.log(`DEBUG: 8. Card "${titolo}" include [LANG]. Aggiungo menu a discesa lingua.`);
                 const langLabel = document.createElement("label");
-                langLabel.textContent = typeof labelLang === 'string' && labelLang.trim() !== '' ? labelLang : "Lingua di destinazione:"; 
+                langLabel.textContent = typeof labelLang === 'string' && labelLang.trim() !== '' ? labelLang : "Lingua di destinazione:";
                 const langSelect = document.createElement("select");
                 langSelect.id = `lang-${index}`;
 
@@ -548,7 +602,7 @@
                 cardContent.appendChild(langLabel);
                 cardContent.appendChild(langSelect);
             } else {
-                console.log(`DEBUG: 9. Card "${titolo}" NON include [LANG]. NON aggiungo menu a discesa lingua.`); 
+                console.log(`DEBUG: 9. Card "${titolo}" NON include [LANG]. NON aggiungo menu a discesa lingua.`);
             }
 
             if (titolo === "Correggi testi da allegati PDF" || titolo === "Correzione bozze") {
@@ -615,13 +669,17 @@
         }
 
         async function init() {
-            const container = document.getElementById("prompt-container");
-            const prompts = await fetchPrompts(); 
+            // --- INIZIO MODIFICHE PER SPINNER ---
+            // promptContainer è già definito all'inizio dello script, non serve riottenerlo qui
+            // const container = document.getElementById("prompt-container");
+            // --- FINE MODIFICHE PER SPINNER ---
+            const prompts = await fetchPrompts();
 
             if (prompts.length === 0) {
-                console.error("DEBUG: 10. La lista dei prompt è vuota. Non posso creare le categorie o renderizzare le card."); 
-                container.innerHTML = '<p style="text-align: center; color: #cc0000; font-weight: bold; margin-top: 3rem;">Errore: Impossibile caricare i prompt dal Google Sheet. Verifica la configurazione della funzione Netlify.</p>';
-                return; 
+                console.error("DEBUG: 10. La lista dei prompt è vuota. Non posso creare le categorie o renderizzare le card.");
+                // Il messaggio di errore è ora nel promptContainer dopo che lo spinner è stato nascosto dal finally
+                promptContainer.innerHTML = '<p style="text-align: center; color: #cc0000; font-weight: bold; margin-top: 3rem;">Errore: Impossibile caricare i prompt dal Google Sheet. Verifica la configurazione della funzione Netlify.</p>';
+                return;
             }
 
             const categorieUniche = new Set();
@@ -638,30 +696,35 @@
             });
 
             function renderCards(filterCategoria = "", searchTerm = "") {
-                container.innerHTML = "";
-                const filteredPrompts = prompts.filter((row) => { 
-                    if (row.length < 6) { 
-                        console.warn("DEBUG: 11. Riga del foglio con meno di 6 colonne, saltata in fase di filtro:", row); 
-                        return false; 
+                // --- INIZIO MODIFICHE PER SPINNER ---
+                // Assicurati che lo spinner sia nascosto prima di renderizzare le card
+                loadingSpinner.classList.add("hidden");
+                // --- FINE MODIFICHE PER SPINNER ---
+                
+                promptContainer.innerHTML = ""; // Pulisci il container prima di aggiungere le card
+                const filteredPrompts = prompts.filter((row) => {
+                    if (row.length < 6) {
+                        console.warn("DEBUG: 11. Riga del foglio con meno di 6 colonne, saltata in fase di filtro:", row);
+                        return false;
                     }
-                    const [titolo, descrizione, prompt, categoria, labelTesto, placeholderText, labelLang] = row; 
+                    const [titolo, descrizione, prompt, categoria, labelTesto, placeholderText, labelLang] = row;
                     
                     const matchesCategory = !filterCategoria || (categoria && categoria.toLowerCase() === filterCategoria);
-                    const matchesSearch = !searchTerm || 
-                                            (titolo && titolo.toLowerCase().includes(searchTerm)) || 
-                                            (descrizione && descrizione.toLowerCase().includes(searchTerm));
+                    const matchesSearch = !searchTerm ||
+                                                (titolo && titolo.toLowerCase().includes(searchTerm)) ||
+                                                (descrizione && descrizione.toLowerCase().includes(searchTerm));
                     return matchesCategory && matchesSearch;
                 });
 
                 if (filteredPrompts.length === 0) {
-                    console.log("DEBUG: 12. Nessun prompt trovato dopo il filtro."); 
-                    container.innerHTML = '<p style="text-align: center; color: #666; font-style: italic; margin-top: 3rem;">Nessun prompt trovato con i criteri di ricerca selezionati.</p>';
+                    console.log("DEBUG: 12. Nessun prompt trovato dopo il filtro.");
+                    promptContainer.innerHTML = '<p style="text-align: center; color: #666; font-style: italic; margin-top: 3rem;">Nessun prompt trovato con i criteri di ricerca selezionati.</p>';
                 } else {
-                    console.log(`DEBUG: 13. Trovati ${filteredPrompts.length} prompt da renderizzare.`); 
+                    console.log(`DEBUG: 13. Trovati ${filteredPrompts.length} prompt da renderizzare.`);
                     filteredPrompts.forEach((row, i) => {
-                        const [titolo, descrizione, prompt, categoria, labelTesto, placeholderText, labelLang] = row; 
-                        const card = creaCard(titolo, descrizione, prompt, categoria, labelTesto, placeholderText, labelLang, i); 
-                        container.appendChild(card);
+                        const [titolo, descrizione, prompt, categoria, labelTesto, placeholderText, labelLang] = row;
+                        const card = creaCard(titolo, descrizione, prompt, categoria, labelTesto, placeholderText, labelLang, i);
+                        promptContainer.appendChild(card);
                     });
                 }
             }
@@ -674,7 +737,7 @@
                 renderCards(categoryFilter.value, e.target.value.toLowerCase());
             });
 
-            renderCards(); 
+            renderCards();
         }
 
         init();
