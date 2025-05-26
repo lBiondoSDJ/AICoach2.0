@@ -9,7 +9,7 @@
 <body>
     <header>
         <h1>Generatore di Prompt AI per Giornalisti</h1>
-        <p>Crea i tuoi prompt per l'intelligenza artificiale in modo professionale e veloce.</p>
+        <p>Personalizza i tuoi prompt per l'intelligenza artificiale a partire da template professionali.</p>
     </header>
     <main>
         <div class="main-content-wrapper">
@@ -32,275 +32,558 @@
         <p>Cosa ne pensi dopo i primi test?</p>
         <a href="https://docs.google.com/forms/d/e/1FAIpQLScxgkTY3S5rRAOpGjGteuPzDX41UpNshxmEpKzge__ASIplVA/viewform?usp=dialog"
             target="_blank"
-            class="feedback-button">Lascia il tuo feedback!</a>
+            class="feedback-button">Lascia un Feedback</a>
     </div>
 
-    <div id="copy-confirmation-modal" class="custom-modal-overlay">
+    <div id="custom-modal-overlay" class="custom-modal-overlay">
         <div class="custom-modal-content">
-            <h3>Copia Effettuata!</h3>
-            <p>Il seguente prompt è stato copiato negli appunti:</p>
-            <pre id="copied-text-display"></pre>
-            <button class="close-button">Chiudi</button>
+            <h3 id="modal-title"></h3>
+            <pre id="modal-content"></pre>
+            <button class="close-button" onclick="hideCustomModal()">Chiudi</button>
         </div>
     </div>
 
-
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
-        // Funzione per caricare il file CSV
-        async function loadCSV(url) {
-            console.log(`DEBUG: 1. Caricamento CSV da: ${url}`);
-            const response = await fetch(url);
-            if (!response.ok) {
-                console.error(`DEBUG: 2. Errore caricamento CSV: ${response.statusText}`);
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const csvText = await response.text();
-            console.log("DEBUG: 3. CSV caricato con successo. Parsing...");
-            return Papa.parse(csvText, { header: false, skipEmptyLines: true }).data;
+        // Funzioni per il modale personalizzato
+        function showCustomModal(title, content) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-content').textContent = content; // Usiamo textContent per prevenire XSS
+            document.getElementById('custom-modal-overlay').classList.add('show');
         }
 
-        // Funzione per creare una singola card di prompt
-        // L'argomento `originalIndex` è l'indice del prompt nell'array `allPrompts`
-        function creaCard(titolo, descrizione, prompt, categoria, labelTesto, placeholderText, labelLang, originalIndex) {
-            console.log(`DEBUG: 6. Creazione card per: ${titolo} (Original ID: ${originalIndex})`);
+        function hideCustomModal() {
+            document.getElementById('custom-modal-overlay').classList.remove('show');
+        }
+
+        // ID del tuo Foglio Google - Questo DEVE rimanere fisso qui per l'app
+        const sheetID = "1uDoHvedmUcczP4rjI0GNZWOWstMPfhYuUahNPPbMoxg";
+        const sheetRange = "Prompt Prestabiliti!A2:G";
+
+        // L'URL della tua Netlify Function per Google Sheets
+        const NETLIFY_FUNCTION_URL = "/.netlify/functions/get-my-sheets";
+
+        // L'URL della tua Netlify Function per Gemini
+        const GEMINI_FUNCTION_URL = "/.netlify/functions/call-gemini";
+
+        const promptContainer = document.getElementById("prompt-container");
+        const loadingSpinner = document.getElementById("loading-spinner");
+
+        async function fetchPrompts() {
+            loadingSpinner.classList.remove("hidden");
+            promptContainer.innerHTML = '';
+
+            try {
+                const response = await fetch(NETLIFY_FUNCTION_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ sheetId: sheetID, sheetRange: sheetRange }),
+                });
+
+                console.log("DEBUG: 1. Sto provando a scaricare i prompt da Netlify Function.");
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error(`DEBUG: 2. Errore nella risposta della Netlify Function: ${response.status}. Dettagli:`, errorData);
+                    throw new Error(`Errore nel caricamento dei dati: ${errorData.error || response.statusText}`);
+                }
+
+                const data = await response.json();
+                console.log("DEBUG: 3. Dati RAW ricevuti dalla Netlify Function:", data);
+
+                if (!data.values || data.values.length === 0) {
+                    console.warn("DEBUG: 4. Nessun dato 'values' trovato nel foglio o foglio vuoto.");
+                }
+                return data.values || [];
+            } catch (error) {
+                console.error("DEBUG: 5. Errore CATCH durante il recupero dei prompt dalla Netlify Function:", error);
+                // Utilizzo del modale per mostrare l'errore
+                showCustomModal("Errore di Caricamento", "Si è verificato un errore nel caricamento dei prompt. Riprova più tardi o controlla la configurazione della funzione Netlify.");
+                return [];
+            } finally {
+                loadingSpinner.classList.add("hidden");
+            }
+        }
+
+        function creaCard(titolo, descrizione, promptTemplate, categoria, labelTesto, placeholderText, labelLang, index) {
+            console.log(`DEBUG: 6. CreaCard chiamata per "${titolo}" - promptTemplate: "${promptTemplate}" - labelLang (Col. G): "${labelLang}"`);
+
             const card = document.createElement("div");
             card.className = "prompt-card";
-            card.setAttribute("data-category", categoria); // Aggiungi l'attributo categoria
+            card.dataset.categoria = categoria?.toLowerCase() || "";
 
-            card.innerHTML = `
-                <div class="card-header" id="card-header-${originalIndex}">
-                    <h3>${titolo}</h3>
-                    <span class="icon">&#9660;</span>
-                </div>
-                <div class="card-content" id="card-content-${originalIndex}">
-                    <p>${descrizione}</p>
-                    <label for="input-${originalIndex}">${labelTesto}</label>
-                    <input type="text" id="input-${originalIndex}" placeholder="${placeholderText}" />
+            const cardHeader = document.createElement("div");
+            cardHeader.className = "card-header";
+            cardHeader.setAttribute("role", "button");
+            cardHeader.setAttribute("aria-expanded", "false");
+            cardHeader.setAttribute("tabindex", "0");
 
-                    <div class="button-group">
-                        <div class="button-group-row">
-                            <button class="generate-prompt-button" data-index="${originalIndex}">Genera Prompt</button>
-                            <button class="copy-button" data-target="prompt-output-${originalIndex}">Copia Prompt</button>
-                        </div>
-                        <div class="button-group-row">
-                            <button class="ai-generate-button" data-index="${originalIndex}">Genera Risposta AI</button>
-                            <div class="ai-loading-indicator hidden" id="ai-loading-spinner-${originalIndex}">
-                                <div class="ai-spinner"></div>
-                                <span>Generando risposta AI...</span>
-                            </div>
-                        </div>
-                    </div>
+            const headerTitle = document.createElement("h3");
+            headerTitle.textContent = titolo;
 
-                    <pre class="prompt-output" id="prompt-output-${originalIndex}">Il prompt generato apparirà qui.</pre>
-                    <div class="note">
-                        <strong>Nota:</strong> Il prompt generato sopra è un suggerimento. Ricorda di personalizzarlo ulteriormente per massimizzare l'efficacia con l'AI.
-                    </div>
+            const icon = document.createElement("span");
+            icon.className = "icon";
+            icon.innerHTML = "&#9660;";
 
-                    <div class="post-output-buttons">
-                        <div class="ai-external-control-group">
-                            <select class="ai-choice-select" id="ai-choice-${originalIndex}">
-                                <option value="gemini">Gemini</option>
-                                <option value="chatgpt">ChatGPT</option>
-                                <option value="copilot">Copilot</option>
-                                <option value="perplexity">Perplexity</option>
-                            </select>
-                            <button class="continue-on-ai-button" data-index="${originalIndex}">Vai a AI esterna</button>
-                        </div>
-                        <button class="reset-button" data-index="${originalIndex}">Reset Prompt</button>
-                    </div>
-                </div>
-            `;
+            cardHeader.appendChild(headerTitle);
+            cardHeader.appendChild(icon);
 
-            // Logica per accordion
-            card.querySelector(".card-header").addEventListener("click", () => {
-                console.log(`DEBUG: Click su header card ID: ${originalIndex}`);
-                const content = card.querySelector(".card-content");
-                const header = card.querySelector(".card-header");
-                content.classList.toggle("open");
-                header.classList.toggle("open");
-            });
+            const cardContent = document.createElement("div");
+            cardContent.className = "card-content";
+            cardContent.setAttribute("aria-hidden", "true");
 
-            // Logica per generazione prompt
-            card.querySelector(".generate-prompt-button").addEventListener("click", (event) => {
-                const index = event.target.dataset.index; // Usa l'originalIndex
-                const inputElement = document.getElementById(`input-${index}`);
-                const promptOutput = document.getElementById(`prompt-output-${index}`);
-                const originalPrompt = allPrompts[index][2]; // Il prompt originale dalla colonna 3 del CSV
-                const inputValue = inputElement.value;
+            const descElement = document.createElement("p");
+            descElement.textContent = descrizione;
 
-                let generatedPrompt = originalPrompt.replace("[INPUT]", inputValue);
-                promptOutput.textContent = generatedPrompt;
-                console.log(`DEBUG: Generato prompt per ID ${index}: ${generatedPrompt}`);
-            });
+            const esperienzaLabel = document.createElement("label");
+            esperienzaLabel.textContent = "Tema o campo di esperienza principale:";
+            const esperienzaInput = document.createElement("input");
+            esperienzaInput.placeholder = "es. economia, esteri, politica...";
+            esperienzaInput.id = `esperienza-${index}`;
 
-            // Logica per copia prompt
-            card.querySelector(".copy-button").addEventListener("click", (event) => {
-                const targetId = event.target.dataset.target;
-                const textToCopy = document.getElementById(targetId).textContent;
+            const genereLabel = document.createElement("label");
+            genereLabel.textContent = "Genere di giornalismo:";
+            const genereInput = document.createElement("input");
+            genereInput.placeholder = "es. cronaca, cultura, sport...";
+            genereInput.id = `genere-${index}`;
 
-                navigator.clipboard.writeText(textToCopy)
-                    .then(() => {
-                        console.log(`DEBUG: Testo copiato: ${textToCopy}`);
-                        // Mostra il modale di conferma
-                        document.getElementById("copied-text-display").textContent = textToCopy;
-                        document.getElementById("copy-confirmation-modal").classList.add("show");
-                    })
-                    .catch(err => {
-                        console.error('DEBUG: Errore nella copia: ', err);
-                        alert('Impossibile copiare il testo. Si prega di copiare manualmente.');
+            const testataLabel = document.createElement("label");
+            testataLabel.textContent = "Nome della testata:";
+            const testataInput = document.createElement("input");
+            testataInput.placeholder = "es. Il Sole 24 Ore, La Repubblica...";
+            testataInput.id = `testata-${index}`;
+
+            const output = document.createElement("div");
+            output.className = "prompt-output";
+            output.innerHTML = "Il prompt personalizzato apparirà qui dopo la generazione.";
+
+            // Variabili per memorizzare il prompt puro e la risposta AI pura
+            let currentGeneratedPrompt = "";
+            let currentAIResponse = "";
+
+            const aiLoadingIndicator = document.createElement("div");
+            aiLoadingIndicator.className = "ai-loading-indicator";
+            aiLoadingIndicator.style.display = 'none';
+            aiLoadingIndicator.innerHTML = '<div class="ai-spinner"></div><span>Generazione risposta AI...</span>';
+
+            // Gruppi di bottoni per le tre righe
+            const buttonGroupRow1 = document.createElement("div");
+            buttonGroupRow1.className = "button-group-row";
+
+            const buttonGroupRow2 = document.createElement("div");
+            buttonGroupRow2.className = "button-group-row";
+
+            const buttonGroupRow3 = document.createElement("div"); // Questa riga verrà spostata
+            buttonGroupRow3.className = "button-group-row";
+
+            // Contenitore principale per i primi due gruppi di bottoni
+            const buttonGroupMain = document.createElement("div");
+            buttonGroupMain.className = "button-group";
+
+
+            const generatePromptButton = document.createElement("button");
+            generatePromptButton.textContent = "Genera Prompt";
+            generatePromptButton.className = "generate-prompt-button";
+            generatePromptButton.onclick = () => {
+                let finalPrompt = promptTemplate
+                    .replace(/\[ESPERIENZA\]/g, esperienzaInput.value || "[ESPERIENZA]")
+                    .replace(/\[GENERE\]/g, genereInput.value || "[GENERE]")
+                    .replace(/\[TESTATA\]/g, testataInput.value || "[TESTATA]");
+
+                const textAreaInput = cardContent.querySelector(`#area-text-${index}`);
+                if (textAreaInput) {
+                    finalPrompt = finalPrompt.replace(/\[AREA_TEXT\]/g, textAreaInput.value || "[AREA_TEXT]");
+                } else {
+                    finalPrompt = finalPrompt.replace(/\[AREA_TEXT\]/g, '');
+                }
+
+                const langSelect = cardContent.querySelector(`#lang-${index}`);
+                if (langSelect) {
+                    finalPrompt = finalPrompt.replace(/\[LANG\]/g, langSelect.value || "[LANG]");
+                } else {
+                    finalPrompt = finalPrompt.replace(/\[LANG\]/g, '');
+                }
+
+                if (promptTemplate.includes("[DETTAGLI]")) {
+                    const dettagliInput = cardContent.querySelector(`#dettagli-${index}`);
+                    finalPrompt = finalPrompt.replace(/\[DETTAGLI\]/g, dettagliInput ? dettagliInput.value || "[DETTAGLI]" : "[DETTAGLI]");
+                }
+
+                currentGeneratedPrompt = finalPrompt;
+                output.innerHTML = marked.parse(finalPrompt);
+                output.style.color = '#444';
+                currentAIResponse = ""; // Resetta la risposta AI quando si genera un nuovo prompt
+            };
+
+            // Bottone "Copia Prompt"
+            const copyPromptButton = document.createElement("button");
+            copyPromptButton.textContent = "Copia Prompt";
+            copyPromptButton.className = "copy-button";
+            copyPromptButton.onclick = () => {
+                const textToCopy = currentGeneratedPrompt;
+                if (!textToCopy) {
+                    showCustomModal("Azione non valida", "Genera prima il prompt da copiare.");
+                    return;
+                }
+                const tempTextarea = document.createElement("textarea");
+                tempTextarea.value = textToCopy;
+                document.body.appendChild(tempTextarea);
+                tempTextarea.select();
+                document.execCommand("copy");
+                document.body.removeChild(tempTextarea);
+                showCustomModal("Copia Effettuata", "Il prompt è stato copiato negli appunti.");
+            };
+
+            const generateAIResponseButton = document.createElement("button");
+            generateAIResponseButton.textContent = "Genera Risposta AI";
+            generateAIResponseButton.className = "ai-generate-button";
+            generateAIResponseButton.onclick = async () => {
+                if (!currentGeneratedPrompt || currentGeneratedPrompt.includes("[") || currentGeneratedPrompt.includes("]") ) {
+                    showCustomModal("Azione non valida", "Per favore, genera prima un prompt personalizzato e assicurati che non contenga placeholder non sostituiti (es. [ESPERIENZA]).");
+                    return;
+                }
+
+                aiLoadingIndicator.style.display = 'flex';
+                output.innerHTML = "Generazione della risposta AI in corso...";
+                output.style.color = '#888';
+
+                try {
+                    const response = await fetch(GEMINI_FUNCTION_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ prompt: currentGeneratedPrompt }),
                     });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        console.error("Errore nella risposta della Cloud Function Gemini:", errorData);
+                        output.innerHTML = `Errore AI: ${errorData.error || response.statusText}. Riprova.`;
+                        output.style.color = '#cc0000';
+                        currentAIResponse = "";
+                        return;
+                    }
+
+                    const data = await response.json();
+                    if (data.aiResponse) {
+                        currentAIResponse = data.aiResponse;
+                        output.innerHTML = marked.parse(data.aiResponse);
+                        output.style.color = '#222';
+                    } else {
+                        output.innerHTML = "Nessuna risposta valida dall'AI.";
+                        output.style.color = '#cc0000';
+                        currentAIResponse = "";
+                    }
+
+                } catch (error) {
+                    console.error("Errore durante la chiamata alla Cloud Function Gemini:", error);
+                    output.innerHTML = `Errore di connessione: ${error.message}. Verifica la console per dettagli.`;
+                    output.style.color = '#cc0000';
+                    currentAIResponse = "";
+                } finally {
+                    aiLoadingIndicator.style.display = 'none';
+                }
+            };
+
+            // Bottone "Copia Risposta AI"
+            const copyAIResponseButton = document.createElement("button");
+            copyAIResponseButton.textContent = "Copia Risposta AI";
+            copyAIResponseButton.className = "copy-button";
+            copyAIResponseButton.onclick = () => {
+                const textToCopy = currentAIResponse;
+                if (!textToCopy) {
+                    showCustomModal("Azione non valida", "Genera prima una risposta AI da copiare.");
+                    return;
+                }
+                const tempTextarea = document.createElement("textarea");
+                tempTextarea.value = textToCopy;
+                document.body.appendChild(tempTextarea);
+                tempTextarea.select();
+                document.execCommand("copy");
+                document.body.removeChild(tempTextarea);
+                showCustomModal("Copia Effettuata", "La risposta AI è stata copiata negli appunti.");
+            };
+
+            // Contenitore per il select e il bottone "Vai a AI esterna"
+            const aiExternalControlGroup = document.createElement("div");
+            aiExternalControlGroup.className = "ai-external-control-group";
+
+            const aiChoiceSelect = document.createElement("select");
+            aiChoiceSelect.className = "ai-choice-select";
+            aiChoiceSelect.id = `ai-choice-${index}`;
+            // Popolare il select
+            ["Gemini", "ChatGPT", "Copilot", "Perplexity"].forEach(ai => {
+                const option = document.createElement("option");
+                option.value = ai.toLowerCase();
+                option.textContent = ai;
+                aiChoiceSelect.appendChild(option);
             });
+            aiExternalControlGroup.appendChild(aiChoiceSelect);
 
-            // Logica per reset prompt
-            card.querySelector(".reset-button").addEventListener("click", (event) => {
-                const index = event.target.dataset.index; // Usa l'originalIndex
-                const inputElement = document.getElementById(`input-${index}`);
-                const promptOutput = document.getElementById(`prompt-output-${index}`);
-
-                inputElement.value = ""; // Resetta l'input dell'utente
-                promptOutput.textContent = "Il prompt generato apparirà qui."; // Resetta l'output
-                console.log(`DEBUG: Reset effettuato per card ID: ${index}`);
-            });
-
-            // Logica per generazione risposta AI (simulata)
-            card.querySelector(".ai-generate-button").addEventListener("click", (event) => {
-                const index = event.target.dataset.index; // Usa l'originalIndex
-                const promptOutput = document.getElementById(`prompt-output-${index}`);
-                const loadingSpinner = document.getElementById(`ai-loading-spinner-${index}`);
-
-                promptOutput.textContent = "Generando risposta..."; // Messaggio temporaneo
-                loadingSpinner.classList.remove("hidden"); // Mostra lo spinner
-
-                console.log(`DEBUG: Generazione risposta AI simulata per ID: ${index}`);
-
-                // Simula una chiamata API con un ritardo
-                setTimeout(() => {
-                    promptOutput.textContent = "Questa è una risposta AI simulata basata sul prompt generato. In un'applicazione reale, qui ci sarebbe la risposta di un modello AI.";
-                    loadingSpinner.classList.add("hidden"); // Nascondi lo spinner
-                    console.log(`DEBUG: Risposta AI simulata completata per ID: ${index}`);
-                }, 2000);
-            });
-
-            // Logica per "Vai a AI esterna"
-            card.querySelector(".continue-on-ai-button").addEventListener("click", (event) => {
-                const index = event.target.dataset.index; // Usa l'originalIndex
-                const promptText = document.getElementById(`prompt-output-${index}`).textContent;
-                const selectedAI = document.getElementById(`ai-choice-${index}`).value;
-
+            // Bottone "Continua su AI personalizzata" (che ora è "Vai a AI esterna")
+            const continueOnAIButton = document.createElement("button");
+            continueOnAIButton.textContent = "Vai a AI esterna";
+            continueOnAIButton.className = "continue-on-ai-button";
+            continueOnAIButton.onclick = () => {
+                const selectedAI = aiChoiceSelect.value;
                 let url = "";
+                let alertMessage = "";
+
+                // Prepara il contenuto da pre-popolare (prompt e/o risposta AI)
+                let contentToPrepopulate = "";
+                if (currentGeneratedPrompt) {
+                    contentToPrepopulate += "Prompt:\n```\n" + currentGeneratedPrompt + "\n```\n\n";
+                }
+                if (currentAIResponse) {
+                    contentToPrepopulate += "Risposta AI:\n```\n" + currentAIResponse + "\n```\n\n";
+                }
+                contentToPrepopulate += "Ora puoi continuare la conversazione con la tua AI preferita partendo da questo contesto.";
+
+                if (!currentGeneratedPrompt && !currentAIResponse) {
+                    showCustomModal("Azione non valida", "Genera un prompt o una risposta AI per continuare.");
+                    return;
+                }
+
                 switch (selectedAI) {
                     case "gemini":
-                        url = `https://gemini.google.com/search?q=${encodeURIComponent(promptText)}`;
+                        url = `https://gemini.google.com/search?q=${encodeURIComponent(contentToPrepopulate)}`;
                         break;
                     case "chatgpt":
-                        // ChatGPT non ha un URL diretto per pre-popolare il prompt. Si potrebbe reindirizzare
-                        // alla pagina principale o a una chat vuota e fare istruzioni all'utente.
-                        // Per questo esempio, reindirizziamo alla pagina principale di ChatGPT.
                         url = "https://chatgpt.com/";
-                        alert("Attenzione: ChatGPT non consente il pre-caricamento diretto del prompt. Copia il prompt e incollalo manualmente nella chat.");
+                        alertMessage = "Attenzione: ChatGPT non consente il pre-caricamento diretto del prompt. Copia il testo fornito nel modale e incollalo manualmente nella chat.";
                         break;
                     case "copilot":
-                        url = `https://copilot.microsoft.com/?q=${encodeURIComponent(promptText)}`;
+                        url = `https://copilot.microsoft.com/?q=${encodeURIComponent(contentToPrepopulate)}`;
                         break;
                     case "perplexity":
-                        url = `https://www.perplexity.ai/search?q=${encodeURIComponent(promptText)}`;
+                        url = `https://www.perplexity.ai/search?q=${encodeURIComponent(contentToPrepopulate)}`;
                         break;
                     default:
-                        url = "https://www.google.com/"; // Fallback
+                        url = "https://www.google.com/"; // Fallback generico
                 }
 
                 if (url) {
-                    window.open(url, '_blank');
-                    console.log(`DEBUG: Reindirizzamento a AI esterna (${selectedAI}) con prompt: ${promptText}`);
-                }
-            });
+                    const newWindow = window.open(url, '_blank');
+                    if (newWindow) {
+                        newWindow.focus();
+                        setTimeout(() => {
+                            // Copia il contenuto negli appunti e mostra il modale
+                            const tempTextarea = document.createElement("textarea");
+                            tempTextarea.value = contentToPrepopulate;
+                            document.body.appendChild(tempTextarea);
+                            tempTextarea.select();
+                            document.execCommand("copy");
+                            document.body.removeChild(tempTextarea);
 
+                            showCustomModal("Contenuto Copiato!", `${alertMessage || "Il testo del prompt e/o della risposta AI è stato copiato negli appunti."}<br><br>Incollalo nella AI esterna.`);
+                        }, 500); // Piccolo ritardo per dare tempo alla nuova finestra di aprirsi
+                    } else {
+                        showCustomModal("Errore", "Impossibile aprire una nuova scheda. Assicurati di non avere un blocco popup attivo.");
+                    }
+                }
+            };
+            aiExternalControlGroup.appendChild(continueOnAIButton);
+
+
+            // Bottone "Reset Output"
+            const resetButton = document.createElement("button");
+            resetButton.textContent = "Reset Output";
+            resetButton.className = "reset-button";
+            resetButton.onclick = () => {
+                output.innerHTML = "Il prompt personalizzato apparirà qui dopo la generazione.";
+                output.style.color = '#444';
+                currentGeneratedPrompt = "";
+                currentAIResponse = "";
+                showCustomModal("Output Reset", "Il campo di output è stato pulito. Puoi generare un nuovo prompt.");
+            };
+
+
+            cardContent.appendChild(descElement);
+            cardContent.appendChild(esperienzaLabel);
+            cardContent.appendChild(esperienzaInput);
+            cardContent.appendChild(genereLabel);
+            cardContent.appendChild(genereInput);
+            cardContent.appendChild(testataLabel);
+            cardContent.appendChild(testataInput);
+
+            const shouldShowTextArea = promptTemplate.includes("[AREA_TEXT]");
+
+            if (shouldShowTextArea) {
+                console.log(`DEBUG: 7. Card "${titolo}" include [AREA_TEXT]. Aggiungo campo testo.`);
+                const testoLabel = document.createElement("label");
+                const testoInput = document.createElement("textarea");
+                testoInput.rows = 4;
+                testoInput.id = `area-text-${index}`;
+
+                testoLabel.textContent = typeof labelTesto === 'string' && labelTesto.trim() !== '' ? labelTesto : "Incolla qui il testo da elaborare:";
+                testoInput.placeholder = typeof placeholderText === 'string' && placeholderText.trim() !== '' ? placeholderText : "Incolla qui il testo...";
+
+                cardContent.appendChild(testoLabel);
+                cardContent.appendChild(testoInput);
+            }
+
+            if (promptTemplate.includes("[LANG]")) {
+                console.log(`DEBUG: 8. Card "${titolo}" include [LANG]. Aggiungo menu a discesa lingua.`);
+                const langLabel = document.createElement("label");
+                langLabel.textContent = typeof labelLang === 'string' && labelLang.trim() !== '' ? labelLang : "Lingua di destinazione:";
+                const langSelect = document.createElement("select");
+                langSelect.id = `lang-${index}`;
+
+                const lingue = [
+                    "Italiano",
+                    "Inglese USA",
+                    "Inglese UK",
+                    "Afrikaans", "Arabo", "Bengali", "Cinese", "Danese", "Ebraico", "Finlandese",
+                    "Francese", "Giapponese", "Hindi", "Indonesiano", "Olandese", "Persiano",
+                    "Polacco", "Portoghese", "Russo", "Spagnolo", "Svedese", "Thai", "Turco", "Vietnamita"
+                ];
+
+                const sortedOtherLanguages = lingue.filter(lang => !["Italiano", "Inglese USA", "Inglese UK"].includes(lang)).sort();
+                const orderedLanguages = ["Italiano", "Inglese USA", "Inglese UK", ...sortedOtherLanguages];
+
+                orderedLanguages.forEach(lingua => {
+                    const option = document.createElement("option");
+                    option.value = lingua;
+                    option.textContent = lingua;
+                    langSelect.appendChild(option);
+                });
+
+                cardContent.appendChild(langLabel);
+                cardContent.appendChild(langSelect);
+            } else {
+                console.log(`DEBUG: 9. Card "${titolo}" NON include [LANG]. NON aggiungo menu a discesa lingua.`);
+            }
+
+            if (promptTemplate.includes("[DETTAGLI]")) { // Questo è stato spostato qui per includere il controllo su DETTAGLI
+                const dettagliLabel = document.createElement("label");
+                dettagliLabel.textContent = "Altri dettagli (se presenti nel prompt originale):";
+                const dettagliInput = document.createElement("input");
+                dettagliInput.placeholder = "aggiungere qui personalizzazioni per lo specifico caso/documento";
+                dettagliInput.id = `dettagli-${index}`;
+                cardContent.appendChild(dettagliLabel);
+                cardContent.appendChild(dettagliInput);
+            }
+
+
+            if (titolo === "Correggi testi da allegati PDF" || titolo === "Correzione bozze") {
+                const note = document.createElement("p");
+                note.className = "note";
+                note.textContent = "Ricordati di fornire il file o il testo da correggere alla tua IA di fiducia insieme al tuo prompt.";
+                cardContent.appendChild(note);
+            } else if (titolo === "Ricava testi da allegati") {
+                const note = document.createElement("p");
+                note.className = "note";
+                note.textContent = "Ricordati di fornire il file da cui vuoi che l'AI ricavi il testo (può essere un png, un jpg, un pdf...).";
+                cardContent.appendChild(note);
+            }
+
+            // Aggiungi i bottoni ai rispettivi gruppi di riga
+            // Riga 1: Genera Prompt, Genera Risposta AI
+            buttonGroupRow1.appendChild(generatePromptButton);
+            buttonGroupRow1.appendChild(generateAIResponseButton);
+
+            // Riga 2: Copia Prompt, Copia Risposta AI
+            buttonGroupRow2.appendChild(copyPromptButton);
+            buttonGroupRow2.appendChild(copyAIResponseButton);
+
+            // Riga 3: Vai a AI esterna (Gruppo), Reset Output
+            buttonGroupRow3.appendChild(aiExternalControlGroup); // Aggiungi il gruppo di select+bottone
+            buttonGroupRow3.appendChild(resetButton);
+
+
+            // Aggiungi i primi due gruppi di bottoni al contenitore principale
+            buttonGroupMain.appendChild(buttonGroupRow1);
+            buttonGroupMain.appendChild(buttonGroupRow2);
+
+            cardContent.appendChild(buttonGroupMain); // Appendi il contenitore con le prime due righe
+            cardContent.appendChild(aiLoadingIndicator);
+            cardContent.appendChild(output);
+
+            // NUOVA POSIZIONE PER LA TERZA RIGA DI BOTTONI
+            const postOutputButtons = document.createElement("div");
+            postOutputButtons.className = "post-output-buttons";
+            postOutputButtons.appendChild(buttonGroupRow3); // Sposta buttonGroupRow3 qui
+            cardContent.appendChild(postOutputButtons); // Appendi il nuovo contenitore
+
+            card.appendChild(cardHeader);
+            card.appendChild(cardContent);
+
+            cardHeader.onclick = () => {
+                const isOpen = cardContent.style.display === "block";
+                if (isOpen) {
+                    cardContent.style.display = "none";
+                    cardHeader.classList.remove("open");
+                    cardContent.classList.remove("open");
+                    cardHeader.setAttribute("aria-expanded", "false");
+                    cardContent.setAttribute("aria-hidden", "true");
+                } else {
+                    document.querySelectorAll('.card-content.open').forEach(openContent => {
+                        openContent.style.display = "none";
+                        openContent.classList.remove("open");
+                        openContent.previousElementSibling.classList.remove("open");
+                        openContent.previousElementSibling.setAttribute("aria-expanded", "false");
+                        openContent.setAttribute("aria-hidden", "true");
+                    });
+
+                    cardContent.style.display = "block";
+                    cardHeader.classList.add("open");
+                    cardContent.classList.add("open");
+                    cardHeader.setAttribute("aria-expanded", "true");
+                    cardContent.setAttribute("aria-hidden", "false");
+                }
+            };
+
+            cardHeader.onkeydown = (event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    cardHeader.click();
+                }
+            };
 
             return card;
         }
 
-        // Variabile globale per contenere tutti i prompt
-        let allPrompts = [];
-        let allCategories = new Set(); // Per memorizzare categorie uniche
-
-        document.addEventListener("DOMContentLoaded", () => {
-            console.log("DEBUG: DOM caricato. Inizializzazione...");
-            init();
-
-            // Logica per chiudere il modale
-            document.querySelector("#copy-confirmation-modal .close-button").addEventListener("click", () => {
-                document.getElementById("copy-confirmation-modal").classList.remove("show");
-            });
-
-            // Chiudi il modale cliccando fuori
-            document.getElementById("copy-confirmation-modal").addEventListener("click", (event) => {
-                if (event.target.id === "copy-confirmation-modal") {
-                    document.getElementById("copy-confirmation-modal").classList.remove("show");
-                }
-            });
-        });
-
         async function init() {
-            const promptContainer = document.getElementById("prompt-container");
-            const loadingSpinner = document.getElementById("loading-spinner");
-            const categoryFilter = document.getElementById("category-filter");
+            const prompts = await fetchPrompts();
 
-            // Nascondi lo spinner all'inizio
-            loadingSpinner.classList.remove("hidden");
-            promptContainer.innerHTML = ''; // Pulisci il contenuto esistente
-
-            try {
-                // Carica PapaParse dinamicamente
-                await new Promise(resolve => {
-                    const script = document.createElement('script');
-                    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js';
-                    script.onload = resolve;
-                    document.head.appendChild(script);
-                    console.log("DEBUG: 4. Caricamento PapaParse...");
-                });
-                console.log("DEBUG: 5. PapaParse caricato.");
-
-                allPrompts = await loadCSV("data/prompts.csv");
-                // Rimuovi l'intestazione se presente (prima riga del CSV)
-                if (allPrompts.length > 0 && allPrompts[0][0].toLowerCase() === 'titolo') {
-                    allPrompts.shift();
-                }
-                console.log("DEBUG: 7. Dati prompt caricati e pronti.");
-
-                // Popola le categorie
-                allPrompts.forEach(row => {
-                    allCategories.add(row[3]); // La categoria è nella 4a colonna (indice 3)
-                });
-
-                allCategories.forEach(category => {
-                    const option = document.createElement("option");
-                    option.value = category;
-                    option.textContent = category;
-                    categoryFilter.appendChild(option);
-                });
-                console.log("DEBUG: 8. Categorie caricate e popolate.");
-
-                renderCards(); // Renderizza tutte le card inizialmente
-                loadingSpinner.classList.add("hidden"); // Nascondi lo spinner una volta caricate le card
-                console.log("DEBUG: 14. Spinner nascosto. Inizializzazione completata.");
-
-            } catch (error) {
-                console.error("DEBUG: Errore durante l'inizializzazione:", error);
-                loadingSpinner.classList.add("hidden");
-                promptContainer.innerHTML = '<p style="text-align: center; color: #d9534f; margin-top: 3rem;">Errore nel caricamento dei prompt. Si prega di riprovare più tardi.</p>';
+            if (prompts.length === 0) {
+                console.error("DEBUG: 10. La lista dei prompt è vuota. Non posso creare le categorie o renderizzare le card.");
+                // Il messaggio d'errore è già gestito da fetchPrompts tramite showCustomModal
+                // promptContainer.innerHTML = '<p style="text-align: center; color: #cc0000; font-weight: bold; margin-top: 3rem;">Errore: Impossibile caricare i prompt dal Google Sheet. Verifica la configurazione della funzione Netlify.</p>';
+                return;
             }
 
-            // Funzione per renderizzare le card in base ai filtri
-            function renderCards(category = "", searchTerm = "") {
-                console.log(`DEBUG: 9. Rendering card con Categoria: "${category}", Ricerca: "${searchTerm}"`);
-                promptContainer.innerHTML = ''; // Pulisci il contenitore prima di renderizzare
+            const categorieUniche = new Set();
+            prompts.forEach(row => {
+                const cat = row[3];
+                if (cat) categorieUniche.add(cat.toLowerCase());
+            });
+            const categoryFilter = document.getElementById("category-filter");
+            Array.from(categorieUniche).sort().forEach(cat => {
+                const option = document.createElement("option");
+                option.value = cat;
+                option.textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
+                categoryFilter.appendChild(option);
+            });
 
-                const filteredPrompts = allPrompts.filter(row => {
-                    const [titolo, descrizione, , categoria] = row; // Destructuring per prendere i valori rilevanti
-                    const matchesCategory = category === "" || categoria === category;
-                    const matchesSearch =
-                        (titolo && titolo.toLowerCase().includes(searchTerm)) ||
-                        (descrizione && descrizione.toLowerCase().includes(searchTerm));
+            function renderCards(filterCategoria = "", searchTerm = "") {
+                // loadingSpinner.classList.add("hidden"); // Questo è già fatto da fetchPrompts.finally
+
+                promptContainer.innerHTML = "";
+                const filteredPrompts = prompts.filter((row, originalIndex) => { // originalIndex è disponibile qui se serve
+                    if (row.length < 6) {
+                        console.warn("DEBUG: 11. Riga del foglio con meno di 6 colonne, saltata in fase di filtro:", row);
+                        return false;
+                    }
+                    const [titolo, descrizione, prompt, categoria, labelTesto, placeholderText, labelLang] = row;
+
+                    const matchesCategory = !filterCategoria || (categoria && categoria.toLowerCase() === filterCategoria);
+                    const matchesSearch = !searchTerm ||
+                                                (titolo && titolo.toLowerCase().includes(searchTerm)) ||
+                                                (descrizione && descrizione.toLowerCase().includes(searchTerm));
                     return matchesCategory && matchesSearch;
                 });
 
@@ -309,10 +592,11 @@
                     promptContainer.innerHTML = '<p style="text-align: center; color: #666; font-style: italic; margin-top: 3rem;">Nessun prompt trovato con i criteri di ricerca selezionati.</p>';
                 } else {
                     console.log(`DEBUG: 13. Trovati ${filteredPrompts.length} prompt da renderizzare.`);
-                    filteredPrompts.forEach((row) => { // Rimuovi l'indice 'i' dalla funzione forEach
-                        const [titolo, descrizione, prompt, categoria, labelTesto, placeholderText, labelLang] = row;
-                        const originalIndex = allPrompts.indexOf(row); // Ottieni l'indice originale
-                        const card = creaCard(titolo, descrizione, prompt, categoria, labelTesto, placeholderText, labelLang, originalIndex);
+                    filteredPrompts.forEach((row, i) => { // Qui 'i' è l'indice nell'array filtrato
+                        const [titolo, descrizione, promptTemplate, categoria, labelTesto, placeholderText, labelLang] = row;
+                        // Passiamo 'i' come 'index' a creaCard. Tutti gli elementi dentro la card useranno questo 'i' per i loro ID.
+                        // La logica di generazione del prompt non dipende più da un 'originalIndex' dall'array globale.
+                        const card = creaCard(titolo, descrizione, promptTemplate, categoria, labelTesto, placeholderText, labelLang, i);
                         promptContainer.appendChild(card);
                     });
                 }
@@ -326,7 +610,7 @@
                 renderCards(categoryFilter.value, e.target.value.toLowerCase());
             });
 
-            renderCards(); // Chiamata iniziale per visualizzare tutti i prompt
+            renderCards(); // Renderizza tutte le card inizialmente
         }
 
         init();
