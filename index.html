@@ -307,7 +307,7 @@
             // Bottone "Continua su AI personalizzata"
             const continueOnGeminiButton = document.createElement("button");
             continueOnGeminiButton.textContent = "Continua su AI personalizzata";
-            continueOnGeminiButton.className = "ai-generate-button";
+            continueOnGeminiButton.className = "continue-on-ai-button";
             continueOnGeminiButton.onclick = () => {
                 if (!currentGeneratedPrompt && !currentAIResponse) {
                     showCustomModal("Azione non valida", "Genera un prompt o una risposta AI per continuare.");

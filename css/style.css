@@ -21,12 +21,14 @@
     --bottom-spacing: 3rem;
 
     /* Nuove variabili per una gestione più flessibile dei bottoni */
-    --button-primary-bg: var(--primary-color);
+    --button-primary-bg: var(--primary-color); /* Per "Genera prompt" */
     --button-primary-hover: #1a2235;
-    --button-secondary-bg: var(--secondary-color); /* Per azioni come "copia" o "continua" */
-    --button-secondary-hover: #449d48;
-    --button-ai-bg: var(--accent-color); /* Specifico per azioni AI "core" */
-    --button-ai-hover: #0056b3;
+    --button-copy-bg: #6c757d; /* Grigio elegante per le azioni di copia */
+    --button-copy-hover: #5a6268;
+    --button-ai-generate-bg: var(--accent-color); /* Blu per "Genera risposta AI" */
+    --button-ai-generate-hover: #0056b3;
+    --button-ai-continue-bg: #17a2b8; /* Azzurro/Turchese per "Continua su AI personalizzata" */
+    --button-ai-continue-hover: #138496;
     --button-reset-bg: #dc3545; /* Rosso per reset */
     --button-reset-hover: #c82333;
     --button-text-color: var(--light-text);
@@ -224,7 +226,7 @@ button {
     font-weight: 600;
     transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
     box-shadow: 0 2px 5px var(--shadow-light);
-    color: var(--button-text-color); /* Testo bianco di default per tutti i bottoni colorati */
+    color: var(--button-text-color);
 }
 
 button:hover {
@@ -237,7 +239,7 @@ button:active {
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-/* Stili specifici per tipo di bottone */
+/* Stili specifici per tipo di bottone - ORA APPLICATI CORRETTAMENTE */
 .generate-prompt-button {
     background-color: var(--button-primary-bg);
 }
@@ -247,19 +249,27 @@ button:active {
 }
 
 .copy-button {
-    background-color: var(--button-secondary-bg); /* Verde per l'azione di copia */
+    background-color: var(--button-copy-bg); /* Grigio per copia */
 }
 
 .copy-button:hover {
-    background-color: var(--button-secondary-hover);
+    background-color: var(--button-copy-hover);
 }
 
 .ai-generate-button {
-    background-color: var(--button-ai-bg); /* Blu per l'azione di generazione AI */
+    background-color: var(--button-ai-generate-bg); /* Blu per genera risposta AI */
 }
 
 .ai-generate-button:hover {
-    background-color: var(--button-ai-hover);
+    background-color: var(--button-ai-generate-hover);
+}
+
+.continue-on-ai-button { /* Ho rinominato la classe da 'ai-generate-button' a 'continue-on-ai-button' nell'HTML per distinguerla e applicare uno stile diverso */
+    background-color: var(--button-ai-continue-bg); /* Azzurro/Turchese per continua su AI */
+}
+
+.continue-on-ai-button:hover {
+    background-color: var(--button-ai-continue-hover);
 }
 
 .reset-button {
@@ -270,18 +280,17 @@ button:active {
     background-color: var(--button-reset-hover);
 }
 
-
 .prompt-output {
     background-color: #eef2f6;
     padding: 1.2rem;
     margin-top: 1.5rem;
     border-radius: 8px;
-    font-family: monospace, sans-serif; /* Per codice e testo generato, più leggibile */
+    font-family: monospace, sans-serif;
     font-size: 0.95rem;
     color: #444;
     border: 1px dashed var(--border-color);
-    white-space: pre-wrap; /* Mantiene la formattazione e va a capo */
-    word-wrap: break-word; /* Rompe le parole lunghe se necessario */
+    white-space: pre-wrap;
+    word-wrap: break-word;
 }
 
 .note {
@@ -379,7 +388,7 @@ button:active {
 
 .ai-spinner {
     border: 3px solid rgba(0, 0, 0, 0.1);
-    border-left-color: var(--accent-color); /* Spinner colore AI */
+    border-left-color: var(--accent-color);
     border-radius: 50%;
     width: 20px;
     height: 20px;
