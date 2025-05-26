@@ -248,6 +248,13 @@ main {
     height: 38px; /* Altezza fissa più compatta */
 }
 
+/* Specific adjustments for "Categoria: Correzione di bozza - 1" line */
+.card-content > p:first-of-type {
+    margin-bottom: 1.5rem; /* Add more space below the category line */
+    font-size: 0.95rem; /* Slightly smaller font size */
+    color: #666; /* Lighter color for sub-text */
+}
+
 .card-content textarea {
     width: calc(100% - 20px); /* Larghezza piena meno padding */
     padding: 0.8rem 10px; /* Padding standard per textarea */
