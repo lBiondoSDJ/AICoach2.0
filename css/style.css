@@ -184,10 +184,29 @@ textarea {
     min-height: 80px;
 }
 
-.button-group {
+/* Stili per i gruppi di bottoni */
+.button-group-row {
     display: flex;
     gap: 0.8rem;
+    margin-bottom: 0.8rem; /* Spazio tra le righe */
+    flex-wrap: wrap; /* Permette il wrapping su schermi piccoli */
+    justify-content: flex-start; /* Allinea a sinistra */
+}
+
+.button-group-row:last-child {
+    margin-bottom: 0; /* Nessun margine sotto l'ultima riga */
+}
+
+/* Assicurati che i bottoni prendano spazio solo quando serve */
+.button-group-row button, .button-group-row a {
+    flex-shrink: 0; /* Evita che i bottoni si rimpiccioliscano troppo */
+}
+
+/* Contenitore generale per tutti i gruppi di bottoni */
+.button-group {
     margin-top: 1.5rem;
+    display: flex;
+    gap: 0.8rem;
     flex-wrap: wrap;
 }
 
@@ -231,7 +250,6 @@ button:active {
     padding: 1.2rem;
     margin-top: 1.5rem;
     border-radius: 8px;
-    /* white-space: pre-wrap;  <-- Rimuovere o modificare se si usa Marked.js per gestire il layout */
     font-family: sans-serif; /* Cambiato per una migliore leggibilità del testo generato */
     font-size: 0.95rem;
     color: #444;
@@ -338,7 +356,6 @@ button:active {
     font-weight: 600;
     transition: background-color 0.2s ease, transform 0.1s ease;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    /* margin-left: 0.8rem; <-- Rimosso, la gap del button-group si occupa di questo */
 }
 
 .ai-generate-button:hover {
