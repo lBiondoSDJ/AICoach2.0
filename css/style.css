@@ -32,6 +32,12 @@
     --button-reset-bg: #dc3545; /* Rosso per reset */
     --button-reset-hover: #c82333;
     --button-text-color: var(--light-text);
+
+    /* Nuove variabili per la terza riga di bottoni (più piccoli e con stili differenziati) */
+    --button-tertiary-bg: #f0f0f0; /* Sfondo più chiaro */
+    --button-tertiary-hover: #e0e0e0;
+    --button-tertiary-text: #555; /* Testo più scuro */
+    --button-tertiary-border: #ccc; /* Bordo sottile */
 }
 
 body {
@@ -213,8 +219,8 @@ textarea {
     margin-top: 1.5rem;
 }
 
-/* Stile generico per tutti i bottoni e select */
-button, .ai-choice-select { /* Aggiunto .ai-choice-select qui */
+/* Stile generico per tutti i bottoni */
+button {
     border: none;
     padding: 0.8rem 1rem;
     border-radius: 8px;
@@ -231,36 +237,6 @@ button, .ai-choice-select { /* Aggiunto .ai-choice-select qui */
     width: calc(50% - 0.4rem); /* Per 2 bottoni per riga, larghezza esatta (metà meno metà del gap) */
 }
 
-/* Stile per il gruppo di controllo AI esterna */
-.ai-external-control-group {
-    display: flex;
-    gap: 0.8rem;
-    flex: 1; /* Occupare metà dello spazio della riga */
-}
-
-.ai-external-control-group .ai-choice-select {
-    flex: 1; /* Il select occupa parte dello spazio del gruppo */
-    width: auto; /* Lascia che flex lo gestisca */
-    min-width: 80px; /* Min-width per evitare che si schiacci troppo */
-    /* Stili specifici per il select all'interno del gruppo */
-    background-color: var(--button-ai-continue-bg); /* Colore di default per il select */
-    color: var(--button-text-color);
-    border: 1px solid var(--button-ai-continue-bg); /* Bordo con lo stesso colore per coerenza */
-    appearance: none; /* Rimuove lo stile predefinito del browser per il select */
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); /* Freccia per il select */
-    background-repeat: no-repeat;
-    background-position: right 0.8rem center;
-    background-size: 1.2rem;
-}
-
-/* Assicurati che il bottone "Vai a AI esterna" all'interno del gruppo sia anche flessibile */
-.ai-external-control-group .continue-on-ai-button {
-    flex: 1; /* Il bottone occupa l'altra parte dello spazio del gruppo */
-    width: auto; /* Lascia che flex lo gestisca */
-    min-width: 80px; /* Min-width per evitare che si schiacci troppo */
-}
-
-
 button:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 10px var(--shadow-medium);
@@ -270,19 +246,6 @@ button:active {
     transform: translateY(0);
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
-
-/* Hover per il select (opzionale, per coerenza) */
-.ai-choice-select:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px var(--shadow-medium);
-}
-
-.ai-choice-select:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(32, 40, 64, 0.2);
-}
-
 
 /* Stili specifici per tipo di bottone */
 .generate-prompt-button {
@@ -309,21 +272,98 @@ button:active {
     background-color: var(--button-ai-generate-hover);
 }
 
-.continue-on-ai-button {
-    background-color: var(--button-ai-continue-bg);
+/* --- NUOVI STILI PER LA TERZA RIGA DI BOTTONI E IL SELECT AI ESTERNA --- */
+
+/* Applica stili specifici alla terza riga di bottoni per renderli più piccoli */
+.button-group-row:nth-child(3) {
+    display: flex;
+    gap: 0.8rem;
+    justify-content: space-around; /* Mantiene la distribuzione dello spazio */
+    align-items: center; /* Centra verticalmente gli elementi della riga */
+    flex-wrap: wrap; /* Assicura il wrapping su mobile */
+    /* Rendiamo gli elementi di questa riga più piccoli */
+    font-size: 0.9rem; /* Testo leggermente più piccolo */
+    padding-top: 0.5rem; /* Un po' di padding per distanziare dalla riga sopra */
 }
 
-.continue-on-ai-button:hover {
+.button-group-row:nth-child(3) button {
+    flex: 1;
+    min-width: unset; /* Rimuovi min-width per permettere flessibilità massima */
+    width: calc(33.33% - 0.53rem); /* Tre elementi per riga (1/3 meno gap) */
+    padding: 0.6rem 0.8rem; /* Padding ridotto */
+    font-size: 0.9rem; /* Coerente con la riga */
+    color: var(--button-tertiary-text); /* Colore del testo più scuro */
+    background-color: var(--button-tertiary-bg); /* Sfondo più chiaro */
+    border: 1px solid var(--button-tertiary-border); /* Bordo sottile */
+    box-shadow: none; /* Rimuovi l'ombra per un look più leggero */
+}
+
+.button-group-row:nth-child(3) button:hover {
+    background-color: var(--button-tertiary-hover);
+    transform: translateY(-1px); /* Effetto hover più leggero */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08); /* Ombra più leggera */
+}
+
+/* Stili per il contenitore del select e del bottone "Vai a AI esterna" */
+.ai-external-control-group {
+    display: flex;
+    gap: 0.8rem;
+    flex: 1; /* Occupa 1/3 dello spazio della riga (insieme al bottone reset) */
+    width: calc(66.66% - 0.53rem); /* Occupa i due terzi della riga */
+    /* Assicurati che gli elementi al suo interno si dividano lo spazio equamente */
+    /* width: calc(50% - 0.4rem) sarebbe per 2 elementi, ma qui il gruppo intero è 2/3 */
+}
+
+.ai-external-control-group .ai-choice-select {
+    flex: 1; /* Il select prende metà dello spazio del gruppo */
+    width: auto;
+    min-width: 0; /* Permette al select di restringersi se necessario */
+    padding: 0.6rem 0.8rem; /* Padding ridotto come i bottoni della riga */
+    font-size: 0.9rem; /* Coerente con la riga */
+    background-color: var(--card-bg); /* Sfondo bianco o chiaro */
+    color: var(--dark-text); /* Testo scuro */
+    border: 1px solid var(--border-color); /* Bordo standard */
+    border-radius: 8px; /* Bordi arrotondati */
+    appearance: none; /* Rimuove lo stile predefinito del browser */
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); /* Freccia nera */
+    background-repeat: no-repeat;
+    background-position: right 0.8rem center;
+    background-size: 1.2rem;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.06); /* Ombra interna leggera */
+    transition: all 0.2s ease;
+}
+
+.ai-external-control-group .ai-choice-select:hover {
+    border-color: var(--primary-color);
+}
+
+.ai-external-control-group .ai-choice-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(32, 40, 64, 0.2);
+}
+
+.ai-external-control-group .continue-on-ai-button {
+    flex: 1; /* Il bottone prende l'altra metà dello spazio del gruppo */
+    width: auto;
+    min-width: unset; /* Rimuovi min-width */
+    padding: 0.6rem 0.8rem; /* Padding ridotto */
+    font-size: 0.9rem; /* Coerente con la riga */
+    background-color: var(--button-ai-continue-bg); /* Colore specifico per il bottone Vai a AI Esterna */
+    color: var(--button-text-color);
+    border: none;
+    box-shadow: none; /* Rimuovi l'ombra per consistenza con la riga */
+}
+
+.ai-external-control-group .continue-on-ai-button:hover {
     background-color: var(--button-ai-continue-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
 
-.reset-button {
-    background-color: var(--button-reset-bg);
-}
 
-.reset-button:hover {
-    background-color: var(--button-reset-hover);
-}
+/* --- FINE NUOVI STILI TERZA RIGA --- */
+
 
 .prompt-output {
     background-color: #eef2f6;
@@ -548,13 +588,31 @@ button:active {
         width: 100%; /* I bottoni tornano a larghezza piena su mobile */
     }
 
+    /* La terza riga su mobile deve impilare gli elementi */
+    .button-group-row:nth-child(3) {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
     .ai-external-control-group {
         flex-direction: column; /* Impila select e bottone su mobile */
         width: 100%; /* Occupa tutta la larghezza disponibile */
     }
 
     .ai-external-control-group .ai-choice-select,
-    .ai-external-control-group .continue-on-ai-button {
+    .ai-external-control-group .continue-on-ai-button,
+    .button-group-row:nth-child(3) button { /* Tutti gli elementi della terza riga */
         width: 100%; /* Fai in modo che occupino tutta la larghezza disponibile all'interno del gruppo */
+        padding: 0.8rem 1rem; /* Riporta al padding normale per mobile */
+        font-size: 1rem; /* Riporta al font-size normale per mobile */
+        box-shadow: 0 2px 5px var(--shadow-light); /* Ripristina l'ombra per coerenza */
+    }
+
+    /* Selettore specifico per il select su mobile, se necessita di override ulteriori */
+    .ai-external-control-group .ai-choice-select {
+        background-color: var(--card-bg); /* Sfondo bianco standard */
+        color: var(--dark-text); /* Testo scuro */
+        border: 1px solid var(--border-color); /* Bordo standard */
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); /* Freccia nera */
     }
 }
