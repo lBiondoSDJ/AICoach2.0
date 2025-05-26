@@ -60,59 +60,60 @@
         }
 
         // Funzione per creare una singola card di prompt
-        function creaCard(titolo, descrizione, prompt, categoria, labelTesto, placeholderText, labelLang, i) {
-            console.log(`DEBUG: 6. Creazione card per: ${titolo} (ID: ${i})`);
+        // L'argomento `originalIndex` è l'indice del prompt nell'array `allPrompts`
+        function creaCard(titolo, descrizione, prompt, categoria, labelTesto, placeholderText, labelLang, originalIndex) {
+            console.log(`DEBUG: 6. Creazione card per: ${titolo} (Original ID: ${originalIndex})`);
             const card = document.createElement("div");
             card.className = "prompt-card";
             card.setAttribute("data-category", categoria); // Aggiungi l'attributo categoria
 
             card.innerHTML = `
-                <div class="card-header" id="card-header-${i}">
+                <div class="card-header" id="card-header-${originalIndex}">
                     <h3>${titolo}</h3>
                     <span class="icon">&#9660;</span>
                 </div>
-                <div class="card-content" id="card-content-${i}">
+                <div class="card-content" id="card-content-${originalIndex}">
                     <p>${descrizione}</p>
-                    <label for="input-${i}">${labelTesto}</label>
-                    <input type="text" id="input-${i}" placeholder="${placeholderText}" />
+                    <label for="input-${originalIndex}">${labelTesto}</label>
+                    <input type="text" id="input-${originalIndex}" placeholder="${placeholderText}" />
 
                     <div class="button-group">
                         <div class="button-group-row">
-                            <button class="generate-prompt-button" data-index="${i}">Genera Prompt</button>
-                            <button class="copy-button" data-target="prompt-output-${i}">Copia Prompt</button>
+                            <button class="generate-prompt-button" data-index="${originalIndex}">Genera Prompt</button>
+                            <button class="copy-button" data-target="prompt-output-${originalIndex}">Copia Prompt</button>
                         </div>
                         <div class="button-group-row">
-                            <button class="ai-generate-button" data-index="${i}">Genera Risposta AI</button>
-                            <div class="ai-loading-indicator hidden" id="ai-loading-spinner-${i}">
+                            <button class="ai-generate-button" data-index="${originalIndex}">Genera Risposta AI</button>
+                            <div class="ai-loading-indicator hidden" id="ai-loading-spinner-${originalIndex}">
                                 <div class="ai-spinner"></div>
                                 <span>Generando risposta AI...</span>
                             </div>
                         </div>
                     </div>
 
-                    <pre class="prompt-output" id="prompt-output-${i}">Il prompt generato apparirà qui.</pre>
+                    <pre class="prompt-output" id="prompt-output-${originalIndex}">Il prompt generato apparirà qui.</pre>
                     <div class="note">
                         <strong>Nota:</strong> Il prompt generato sopra è un suggerimento. Ricorda di personalizzarlo ulteriormente per massimizzare l'efficacia con l'AI.
                     </div>
 
                     <div class="post-output-buttons">
                         <div class="ai-external-control-group">
-                            <select class="ai-choice-select" id="ai-choice-${i}">
+                            <select class="ai-choice-select" id="ai-choice-${originalIndex}">
                                 <option value="gemini">Gemini</option>
                                 <option value="chatgpt">ChatGPT</option>
                                 <option value="copilot">Copilot</option>
                                 <option value="perplexity">Perplexity</option>
                             </select>
-                            <button class="continue-on-ai-button" data-index="${i}">Vai a AI esterna</button>
+                            <button class="continue-on-ai-button" data-index="${originalIndex}">Vai a AI esterna</button>
                         </div>
-                        <button class="reset-button" data-index="${i}">Reset Prompt</button>
+                        <button class="reset-button" data-index="${originalIndex}">Reset Prompt</button>
                     </div>
                 </div>
             `;
 
             // Logica per accordion
             card.querySelector(".card-header").addEventListener("click", () => {
-                console.log(`DEBUG: Click su header card ID: ${i}`);
+                console.log(`DEBUG: Click su header card ID: ${originalIndex}`);
                 const content = card.querySelector(".card-content");
                 const header = card.querySelector(".card-header");
                 content.classList.toggle("open");
@@ -121,7 +122,7 @@
 
             // Logica per generazione prompt
             card.querySelector(".generate-prompt-button").addEventListener("click", (event) => {
-                const index = event.target.dataset.index;
+                const index = event.target.dataset.index; // Usa l'originalIndex
                 const inputElement = document.getElementById(`input-${index}`);
                 const promptOutput = document.getElementById(`prompt-output-${index}`);
                 const originalPrompt = allPrompts[index][2]; // Il prompt originale dalla colonna 3 del CSV
@@ -152,7 +153,7 @@
 
             // Logica per reset prompt
             card.querySelector(".reset-button").addEventListener("click", (event) => {
-                const index = event.target.dataset.index;
+                const index = event.target.dataset.index; // Usa l'originalIndex
                 const inputElement = document.getElementById(`input-${index}`);
                 const promptOutput = document.getElementById(`prompt-output-${index}`);
 
@@ -163,7 +164,7 @@
 
             // Logica per generazione risposta AI (simulata)
             card.querySelector(".ai-generate-button").addEventListener("click", (event) => {
-                const index = event.target.dataset.index;
+                const index = event.target.dataset.index; // Usa l'originalIndex
                 const promptOutput = document.getElementById(`prompt-output-${index}`);
                 const loadingSpinner = document.getElementById(`ai-loading-spinner-${index}`);
 
@@ -182,7 +183,7 @@
 
             // Logica per "Vai a AI esterna"
             card.querySelector(".continue-on-ai-button").addEventListener("click", (event) => {
-                const index = event.target.dataset.index;
+                const index = event.target.dataset.index; // Usa l'originalIndex
                 const promptText = document.getElementById(`prompt-output-${index}`).textContent;
                 const selectedAI = document.getElementById(`ai-choice-${index}`).value;
 
@@ -308,9 +309,10 @@
                     promptContainer.innerHTML = '<p style="text-align: center; color: #666; font-style: italic; margin-top: 3rem;">Nessun prompt trovato con i criteri di ricerca selezionati.</p>';
                 } else {
                     console.log(`DEBUG: 13. Trovati ${filteredPrompts.length} prompt da renderizzare.`);
-                    filteredPrompts.forEach((row, i) => {
+                    filteredPrompts.forEach((row) => { // Rimuovi l'indice 'i' dalla funzione forEach
                         const [titolo, descrizione, prompt, categoria, labelTesto, placeholderText, labelLang] = row;
-                        const card = creaCard(titolo, descrizione, prompt, categoria, labelTesto, placeholderText, labelLang, i);
+                        const originalIndex = allPrompts.indexOf(row); // Ottieni l'indice originale
+                        const card = creaCard(titolo, descrizione, prompt, categoria, labelTesto, placeholderText, labelLang, originalIndex);
                         promptContainer.appendChild(card);
                     });
                 }
@@ -324,7 +326,7 @@
                 renderCards(categoryFilter.value, e.target.value.toLowerCase());
             });
 
-            renderCards();
+            renderCards(); // Chiamata iniziale per visualizzare tutti i prompt
         }
 
         init();
