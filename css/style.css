@@ -23,22 +23,14 @@
     /* Nuove variabili per una gestione più flessibile dei bottoni */
     --button-primary-bg: var(--primary-color); /* Per "Genera prompt" */
     --button-primary-hover: #1a2235;
-    --button-copy-bg: #6c757d; /* Grigio elegante per le azioni di copia */
+    --button-copy-bg: #6c757d; /* Grigio per "Copia" */
     --button-copy-hover: #5a6268;
-    --button-ai-generate-bg: var(--accent-color); /* Blu per "Genera risposta AI" */
-    --button-ai-generate-hover: #0056b3;
-    --button-ai-continue-bg: #17a2b8; /* Azzurro/Turchese per "Continua su AI personalizzata" */
-    --button-ai-continue-hover: #138496;
-    --button-reset-bg: #dc3545; /* Questo sarà il colore di fallback, ma useremo il bordo */
-    --button-reset-hover: #c82333; /* Questo sarà il colore di fallback per l'hover */
-    --button-text-color: var(--light-text);
-
-    /* Nuove variabili per la terza riga di bottoni (più piccoli e con stili differenziati) */
-    --button-tertiary-bg: #f0f0f0; /* Sfondo più chiaro */
-    --button-tertiary-hover: #e0e0e0;
-    --button-tertiary-text: #555; /* Testo più scuro */
-    --button-tertiary-border: #ccc; /* Bordo sottile per bottoni normali della terza riga */
-    --button-reset-outline-color: #dc3545; /* Colore rosso per l'outline del reset */
+    --button-ai-bg: var(--accent-color); /* Blu per "Genera Risposta AI" */
+    --button-ai-hover: #0056b3;
+    --button-external-ai-bg: #f0ad4e; /* Arancione per "Vai a AI esterna" */
+    --button-external-ai-hover: #ec971f;
+    --button-reset-bg: #dc3545; /* Rosso per "Reset Output" */
+    --button-reset-hover: #c82333;
 }
 
 body {
@@ -46,93 +38,140 @@ body {
     background-color: var(--light-bg);
     margin: 0;
     padding: 0;
-    color: var(--dark-text);
     line-height: 1.6;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+    color: var(--dark-text);
 }
 
 header {
     background-color: var(--primary-color);
     color: var(--light-text);
-    padding: 3rem var(--main-padding);
+    padding: 2rem 1.5rem;
     text-align: center;
-    box-shadow: 0 4px 15px var(--shadow-medium);
+    box-shadow: 0 4px 8px var(--shadow-medium);
+    margin-bottom: 2rem;
 }
 
 header h1 {
-    margin-bottom: 0.5rem;
+    margin: 0;
     font-size: 2.8rem;
     font-weight: 700;
+    line-height: 1.2;
 }
 
 header p {
+    margin-top: 0.5rem;
     font-size: 1.1rem;
+    font-weight: 300;
     opacity: 0.9;
 }
 
 main {
-    width: 100%;
-    padding: 2.5rem 0;
-    flex-grow: 1;
-    box-sizing: border-box;
+    padding: 0 var(--main-padding);
 }
 
 .main-content-wrapper {
     max-width: var(--content-max-width);
     margin: 0 auto;
-    padding: 0 var(--main-padding) var(--bottom-spacing);
-    background: var(--card-bg);
+    background-color: var(--card-bg);
+    padding: var(--main-padding);
     border-radius: 12px;
-    box-shadow: 0 5px 20px var(--shadow-light);
-    box-sizing: border-box;
+    box-shadow: 0 6px 12px var(--shadow-light);
 }
 
 #filter-container {
     display: flex;
-    gap: 1.5rem;
-    margin-bottom: 2.5rem;
-    flex-wrap: wrap;
-    padding-top: var(--main-padding);
+    flex-wrap: wrap; /* Permette ai campi di andare a capo su schermi più piccoli */
+    gap: 1rem; /* Spazio tra gli elementi */
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
 }
 
-#category-filter, #search-input {
-    flex: 1;
-    min-width: 250px;
+#category-filter,
+#search-input {
+    flex: 1; /* Permette agli input di espandersi */
     padding: 0.8rem 1rem;
     border: 1px solid var(--border-color);
     border-radius: 8px;
     font-size: 1rem;
-    background-color: var(--card-bg);
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
+    font-family: 'Inter', sans-serif; /* Font uniforme */
+    color: var(--dark-text);
 }
 
-#category-filter:focus, #search-input:focus,
-input:focus, textarea:focus, select:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(32, 40, 64, 0.2);
+#category-filter {
+    min-width: 150px; /* Larghezza minima per la select */
+    background-color: var(--card-bg); /* Sfondo bianco per la select */
 }
 
+#search-input::placeholder {
+    color: #999;
+}
+
+#prompt-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem; /* Spazio tra le card */
+    margin-bottom: var(--bottom-spacing);
+}
+
+/* --- Spinner di caricamento iniziale --- */
+.spinner-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 0;
+    color: #666;
+    font-size: 1.1rem;
+}
+
+.spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-left-color: var(--primary-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.spinner-container.hidden {
+    display: none;
+}
+/* --- Fine Spinner --- */
+
+
+/* --- Prompt Card Styling --- */
 .prompt-card {
-    border: 1px solid var(--accordion-border);
-    border-radius: 10px;
-    margin-bottom: 1.5rem;
     background-color: var(--card-bg);
-    box-shadow: 0 2px 10px var(--shadow-light);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
     overflow: hidden;
+    box-shadow: 0 4px 8px var(--shadow-light);
+    transition: all 0.3s ease;
+}
+
+.prompt-card:hover {
+    box-shadow: 0 8px 16px var(--shadow-medium);
+    transform: translateY(-2px);
 }
 
 .card-header {
     background-color: var(--accordion-header-bg);
-    padding: 1rem 1.5rem;
+    padding: 1.2rem 1.5rem;
     cursor: pointer;
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid var(--accordion-border);
     transition: background-color 0.2s ease;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
 }
 
 .card-header:hover {
@@ -141,14 +180,15 @@ input:focus, textarea:focus, select:focus {
 
 .card-header h3 {
     margin: 0;
+    font-size: 1.3rem;
     color: var(--primary-color);
-    font-size: 1.25rem;
     font-weight: 600;
 }
 
 .card-header .icon {
     font-size: 1.5rem;
     transition: transform 0.3s ease;
+    color: #666;
 }
 
 .card-header.open .icon {
@@ -156,347 +196,310 @@ input:focus, textarea:focus, select:focus {
 }
 
 .card-content {
+    display: none; /* Nascondi di default */
     padding: 1.5rem;
-    display: none;
     border-top: none;
+    line-height: 1.7;
+    overflow: hidden; /* Assicurati che non ci siano overflow */
+    transition: max-height 0.5s ease-out, opacity 0.5s ease-out; /* Animazione più fluida */
+    max-height: 0;
+    opacity: 0;
+    visibility: hidden;
+    box-sizing: border-box; /* Include padding e border nella larghezza/altezza */
 }
 
 .card-content.open {
     display: block;
-    animation: slideDown 0.3s ease-out;
+    max-height: 1000px; /* Un valore sufficientemente grande */
+    opacity: 1;
+    visibility: visible;
 }
 
-@keyframes slideDown {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.prompt-card p {
+.card-content p {
     margin-top: 0;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.2rem;
     font-size: 1rem;
     color: #555;
 }
 
-label {
-    font-weight: 600;
+.card-content label {
     display: block;
-    margin-top: 1.2rem;
-    margin-bottom: 0.4rem;
+    font-weight: 600;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
     color: var(--primary-color);
     font-size: 0.95rem;
 }
 
-input, textarea, select {
-    width: calc(100% - 20px);
+.card-content input[type="text"],
+.card-content select,
+.card-content textarea { /* Applicato anche a textarea */
+    width: calc(100% - 22px); /* Larghezza piena meno padding e bordo */
     padding: 0.8rem 10px;
-    margin-top: 0.4rem;
     border: 1px solid var(--border-color);
     border-radius: 8px;
     font-size: 1rem;
-    box-sizing: border-box;
+    font-family: 'Inter', sans-serif; /* Font uniforme */
+    color: var(--dark-text);
+    box-sizing: border-box; /* Importante per width: 100% */
 }
 
-textarea {
-    resize: vertical;
-    min-height: 80px;
+/* Stile specifico per textarea */
+.card-content textarea {
+    resize: vertical; /* Permette solo il ridimensionamento verticale */
+    min-height: 80px; /* Altezza minima */
+    max-height: 200px; /* Altezza massima */
 }
-
-/* Stili per i gruppi di bottoni */
-.button-group-row {
-    display: flex;
-    gap: 0.8rem; /* Spazio tra i bottoni */
-    margin-bottom: 0.8rem;
-    flex-wrap: wrap; /* Permette il wrapping su schermi piccoli */
-    justify-content: space-around; /* Distribuisce lo spazio uniformemente */
-    align-items: stretch; /* Assicura che i bottoni abbiano la stessa altezza se il testo varia */
-}
-
-.button-group-row:last-child {
-    margin-bottom: 0;
-}
-
-/* Rimuovi la classe .button-group da qui, sarà applicata alla riga specifica se necessario */
-/* .button-group {
-    margin-top: 1.5rem;
-} */
-
-
-/* Stile generico per tutti i bottoni */
-button {
-    border: none;
-    padding: 0.8rem 1rem;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: 600;
-    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease, border-color 0.2s ease; /* Aggiunto border-color */
-    box-shadow: 0 2px 5px var(--shadow-light);
-    color: var(--button-text-color);
-    text-align: center;
-    flex: 1; /* Permette ai bottoni di distribuirsi equamente */
-    min-width: 0; /* Impedisce che il contenuto causi overflow */
-    box-sizing: border-box; /* Include padding e border nella larghezza */
-    width: calc(50% - 0.4rem); /* Per 2 bottoni per riga, larghezza esatta (metà meno metà del gap) */
-}
-
-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px var(--shadow-medium);
-}
-
-button:active {
-    transform: translateY(0);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-/* Stili specifici per tipo di bottone */
-.generate-prompt-button {
-    background-color: var(--button-primary-bg);
-}
-
-.generate-prompt-button:hover {
-    background-color: var(--button-primary-hover);
-}
-
-.copy-button {
-    background-color: var(--button-copy-bg);
-}
-
-.copy-button:hover {
-    background-color: var(--button-copy-hover);
-}
-
-.ai-generate-button {
-    background-color: var(--button-ai-generate-bg);
-}
-
-.ai-generate-button:hover {
-    background-color: var(--button-ai-generate-hover);
-}
-
-/* --- NUOVI STILI PER LA TERZA RIGA DI BOTTONI E IL SELECT AI ESTERNA --- */
-
-/* Contenitore generale per i bottoni in fondo al prompt-output */
-.post-output-buttons {
-    margin-top: 1.5rem; /* Spazio sopra questi bottoni dopo l'output */
-    display: flex;
-    gap: 0.8rem;
-    justify-content: center; /* Centra gli elementi nella riga */
-    align-items: stretch; /* Tutti gli elementi della riga hanno la stessa altezza */
-    flex-wrap: wrap;
-    font-size: 0.9rem;
-}
-
-/* Stili per tutti i bottoni e i gruppi di bottoni all'interno di .post-output-buttons */
-.post-output-buttons button,
-.post-output-buttons .ai-external-control-group {
-    padding: 0.6rem 0.8rem;
-    font-size: 0.9rem;
-    color: var(--button-tertiary-text);
-    background-color: var(--button-tertiary-bg);
-    border: 1px solid var(--button-tertiary-border); /* Bordo standard per la terza riga */
-    box-shadow: none;
-    flex-grow: 1; /* Permette loro di crescere e occupare lo spazio disponibile */
-    flex-shrink: 1; /* Permette loro di restringersi */
-    flex-basis: 0; /* Base flessibile per la distribuzione equa dello spazio */
-    min-width: 80px; /* Evita che si schiaccino troppo */
-    box-sizing: border-box; /* Assicura che padding e border siano inclusi nella larghezza */
-}
-
-
-.post-output-buttons button:hover {
-    background-color: var(--button-tertiary-hover);
-    transform: translateY(-1px);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-}
-
-/* Stili specifici per il bottone Reset Prompt: solo l'outline diventa rosso */
-.reset-button {
-    background-color: var(--button-tertiary-bg); /* Sfondo chiaro come gli altri della riga */
-    color: var(--button-tertiary-text); /* Testo scuro come gli altri della riga */
-    border: 1px solid var(--button-reset-outline-color); /* Bordo rosso */
-    /* Nessun box-shadow per mantenere l'aspetto minimalista, se non quello sull'hover */
-}
-
-.reset-button:hover {
-    background-color: var(--button-tertiary-hover); /* Sfondo chiaro al hover */
-    border-color: var(--button-reset-outline-color); /* Bordo rosso al hover */
-    /* Mantieni il transform e box-shadow definito in .post-output-buttons button:hover */
-}
-
-
-/* Stili per il contenitore del select e del bottone "Vai a AI esterna" */
-.ai-external-control-group {
-    display: flex;
-    gap: 0.8rem;
-    flex-grow: 2; /* Questo gruppo prenderà il doppio dello spazio di un singolo bottone */
-    flex-shrink: 1;
-    flex-basis: 0; /* Base flessibile */
-    min-width: 180px; /* Min-width per il gruppo per evitare eccessiva compressione */
-    /* Il padding, font-size, background, border, shadow sono ereditati da .post-output-buttons .ai-external-control-group */
-}
-
-.ai-external-control-group .ai-choice-select {
-    flex-grow: 1; /* Il select prende metà dello spazio del gruppo */
-    width: auto;
-    min-width: 0;
-    padding: 0.6rem 0.8rem; /* Stesso padding dei bottoni */
-    font-size: 0.9rem; /* Stesso font-size dei bottoni */
-    background-color: var(--card-bg); /* Sfondo bianco o chiaro */
-    color: var(--dark-text); /* Testo scuro */
-    border: 1px solid var(--border-color); /* Bordo standard */
-    border-radius: 8px;
-    appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); /* Freccia nera */
-    background-repeat: no-repeat;
-    background-position: right 0.8rem center;
-    background-size: 1.2rem;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
-    transition: all 0.2s ease;
-}
-
-.ai-external-control-group .ai-choice-select:hover {
-    border-color: var(--primary-color);
-}
-
-.ai-external-control-group .ai-choice-select:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(32, 40, 64, 0.2);
-}
-
-.ai-external-control-group .continue-on-ai-button {
-    flex-grow: 1; /* Il bottone prende l'altra metà dello spazio del gruppo */
-    width: auto;
-    min-width: unset;
-    /* Colori specifici per il bottone Vai a AI Esterna */
-    background-color: var(--button-ai-continue-bg);
-    color: var(--button-text-color);
-    border: none; /* Rimuovi il bordo che altrimenti sarebbe ereditato da .post-output-buttons button */
-    box-shadow: none; /* Rimuovi l'ombra che altrimenti sarebbe ereditata */
-    /* Il padding e font-size sono ereditati da .post-output-buttons button */
-}
-
-.ai-external-control-group .continue-on-ai-button:hover {
-    background-color: var(--button-ai-continue-hover);
-    transform: translateY(-1px);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-}
-
-
-/* --- FINE STILI TERZA RIGA / POST-OUTPUT --- */
 
 
 .prompt-output {
-    background-color: #eef2f6;
+    background-color: #f8f9fa;
+    border: 1px solid var(--border-color);
     padding: 1.2rem;
-    margin-top: 1.5rem;
     border-radius: 8px;
-    font-family: monospace, sans-serif;
-    font-size: 0.95rem;
+    margin-top: 1.5rem; /* Aumentato il padding/margine superiore */
+    font-size: 1rem;
     color: #444;
-    border: 1px dashed var(--border-color);
-    white-space: pre-wrap;
-    word-wrap: break-word;
+    white-space: pre-wrap; /* Mantiene la formattazione e va a capo */
+    word-wrap: break-word; /* Va a capo su parole lunghe */
+    font-family: 'Inter', sans-serif; /* Font uniforme per l'output */
+    line-height: 1.6;
+    max-height: 300px; /* Limita l'altezza dell'output */
+    overflow-y: auto; /* Aggiunge scroll se il contenuto è troppo lungo */
 }
+
+.prompt-output h1, .prompt-output h2, .prompt-output h3, .prompt-output h4, .prompt-output h5, .prompt-output h6 {
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.prompt-output h1 { font-size: 1.8em; }
+.prompt-output h2 { font-size: 1.5em; }
+.prompt-output h3 { font-size: 1.3em; }
+.prompt-output ul {
+    list-style-type: disc;
+    padding-left: 20px;
+    margin-bottom: 1em;
+}
+.prompt-output ol {
+    list-style-type: decimal;
+    padding-left: 20px;
+    margin-bottom: 1em;
+}
+.prompt-output li {
+    margin-bottom: 0.5em;
+}
+.prompt-output code {
+    background-color: rgba(27,31,35,.05);
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 0.9em;
+    padding: .2em .4em;
+}
+.prompt-output pre {
+    background-color: #eee;
+    border: 1px solid #ddd;
+    padding: 1em;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-family: monospace;
+}
+
 
 .note {
     font-size: 0.9rem;
     color: #666;
-    background-color: #ffeccf;
-    border-left: 4px solid #ffc107;
-    padding: 0.8rem;
-    border-radius: 5px;
     margin-top: 1rem;
+    padding: 0.8rem;
+    background-color: #f0f8ff;
+    border-left: 4px solid #87cefa;
+    border-radius: 4px;
 }
 
-.feedback-section {
-    width: 100%;
-    max-width: var(--content-max-width);
-    margin: 2.5rem auto;
-    padding: var(--main-padding);
-    background: var(--card-bg);
-    border-radius: 12px;
-    box-shadow: 0 5px 20px var(--shadow-light);
+/* --- Button Group Styling --- */
+.button-group {
+    margin-top: 2rem; /* Aumenta lo spazio sopra la prima riga di bottoni */
+    display: flex;
+    flex-direction: column;
+    gap: 1rem; /* Spazio tra le righe di bottoni */
+}
+
+.button-group-row,
+.post-output-buttons { /* Applica le regole anche al nuovo contenitore di bottoni sotto l'output */
+    display: flex;
+    gap: 0.8rem; /* Spazio tra i bottoni nella stessa riga */
+    flex-wrap: wrap; /* Permette ai bottoni di andare a capo su schermi piccoli */
+}
+
+/* Rende i bottoni uniformi in larghezza */
+.button-group-row button,
+.post-output-buttons button {
+    flex-grow: 1; /* Ogni bottone si espande per occupare lo spazio disponibile */
+    min-width: 120px; /* Larghezza minima per evitare che siano troppo stretti */
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
     text-align: center;
-    box-sizing: border-box;
+    box-sizing: border-box; /* Include padding e border nella larghezza */
+}
+
+
+.generate-prompt-button {
+    background-color: var(--button-primary-bg);
+    color: var(--light-text);
+    border: none;
+}
+.generate-prompt-button:hover {
+    background-color: var(--button-primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px var(--shadow-light);
+}
+
+.copy-button {
+    background-color: var(--button-copy-bg);
+    color: var(--light-text);
+    border: none;
+}
+.copy-button:hover {
+    background-color: var(--button-copy-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px var(--shadow-light);
+}
+
+.ai-generate-button {
+    background-color: var(--button-ai-bg);
+    color: var(--light-text);
+    border: none;
+}
+.ai-generate-button:hover {
+    background-color: var(--button-ai-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px var(--shadow-light);
+}
+
+
+/* Stili per la terza riga di bottoni dopo l'output */
+.post-output-buttons {
+    margin-top: 1.5rem; /* Spazio aggiuntivo sopra questi bottoni */
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    align-items: center; /* Allinea verticalmente gli elementi */
+}
+
+.ai-external-control-group {
+    display: flex;
+    flex-grow: 1; /* Si espande per occupare spazio */
+    gap: 0.5rem;
+    min-width: 200px; /* Larghezza minima per il gruppo select+button */
+}
+
+.ai-external-control-group .ai-choice-select {
+    flex-grow: 1; /* Il select si espande */
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-family: 'Inter', sans-serif;
+    color: var(--dark-text);
+    background-color: var(--card-bg);
+    min-width: 80px; /* Larghezza minima per il select */
+}
+
+.ai-external-control-group .continue-on-ai-button {
+    flex-grow: 1; /* Il bottone si espande */
+    background-color: var(--button-external-ai-bg);
+    color: var(--light-text);
+    border: none;
+    min-width: 100px; /* Larghezza minima per il bottone */
+}
+.ai-external-control-group .continue-on-ai-button:hover {
+    background-color: var(--button-external-ai-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px var(--shadow-light);
+}
+
+.reset-button {
+    flex-grow: 1; /* Il bottone si espande */
+    background-color: var(--button-reset-bg);
+    color: var(--light-text);
+    border: 1px solid var(--button-reset-bg); /* Bordo per l'outline */
+}
+.reset-button:hover {
+    background-color: var(--button-reset-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.4); /* Ombra rossa leggera */
+}
+.reset-button:focus {
+    outline: 2px solid var(--button-reset-bg); /* Outline rosso al focus */
+    outline-offset: 2px;
+}
+
+
+/* --- Feedback Section --- */
+.feedback-section {
+    max-width: var(--content-max-width);
+    margin: 2rem auto var(--bottom-spacing) auto;
+    background-color: var(--card-bg);
+    padding: var(--main-padding);
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 4px 8px var(--shadow-light);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
 }
 
 .feedback-section p {
+    margin: 0;
     font-size: 1.1rem;
     color: var(--dark-text);
-    margin-bottom: 1.5rem;
 }
 
 .feedback-button {
+    display: inline-block;
     background-color: var(--feedback-button-color);
     color: var(--light-text);
-    border: none;
-    padding: 1rem 2rem;
+    padding: 0.8rem 1.8rem;
     border-radius: 8px;
-    cursor: pointer;
-    font-size: 1.1rem;
-    font-weight: 600;
     text-decoration: none;
-    display: inline-block;
+    font-weight: 600;
+    font-size: 1rem;
     transition: background-color 0.2s ease, transform 0.1s ease;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .feedback-button:hover {
     background-color: var(--feedback-button-hover);
-    transform: translateY(-2px);
+    transform: translateY(-1px);
 }
-
 .feedback-button:active {
     transform: translateY(0);
     box-shadow: none;
 }
 
-.spinner-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100px;
-    margin-top: 2rem;
-    font-size: 1.1rem;
-    color: var(--primary-color);
-}
-
-.spinner {
-    border: 4px solid rgba(0, 0, 0, 0.1);
-    border-left-color: var(--primary-color);
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    animation: spin 1s linear infinite;
-    margin-right: 10px;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.hidden {
-    display: none !important;
-}
-
+/* Stile per indicatore di caricamento AI */
 .ai-loading-indicator {
-    display: flex;
+    display: flex; /* Cambiato a flex per centrare spinner e testo */
     justify-content: center;
     align-items: center;
     margin-top: 1rem;
     font-style: italic;
     color: #555;
     text-align: center;
-    font-size: 0.9rem;
+    font-size: 0.9rem; /* Riduci dimensione font per questo spinner */
 }
 
+/* Spinner per il caricamento AI, riutilizza lo stile esistente o creane uno nuovo */
 .ai-spinner {
     border: 3px solid rgba(0, 0, 0, 0.1);
-    border-left-color: var(--accent-color);
+    border-left-color: var(--accent-color); /* Colore dello spinner AI */
     border-radius: 50%;
     width: 20px;
     height: 20px;
@@ -506,7 +509,7 @@ button:active {
     margin-right: 8px;
 }
 
-/* Stili per il Modale personalizzato (Copy Confirmation) */
+/* --- Custom Modal Styling --- */
 .custom-modal-overlay {
     position: fixed;
     top: 0;
@@ -530,12 +533,13 @@ button:active {
 
 .custom-modal-content {
     background-color: var(--card-bg);
-    padding: 25px 35px;
+    padding: 30px;
     border-radius: 12px;
-    box-shadow: 0 5px 25px var(--shadow-medium);
+    box-shadow: 0 8px 16px var(--shadow-medium);
     max-width: 500px;
+    width: 90%;
     text-align: center;
-    transform: translateY(-20px);
+    transform: translateY(-50px);
     transition: transform 0.3s ease;
     position: relative;
 }
@@ -560,7 +564,7 @@ button:active {
     overflow-y: auto;
     white-space: pre-wrap;
     text-align: left;
-    font-family: monospace;
+    font-family: 'Inter', sans-serif; /* Font uniforme per il modale */
     font-size: 0.95rem;
     color: #333;
     margin-bottom: 20px;
@@ -583,6 +587,7 @@ button:active {
 }
 
 
+/* --- Responsive Adjustments --- */
 @media (max-width: 768px) {
     header h1 {
         font-size: 2rem;
@@ -590,52 +595,51 @@ button:active {
 
     .main-content-wrapper, .feedback-section {
         margin: 1.5rem auto;
-        padding: 1rem;
-    }
-
-    .main-content-wrapper {
-        padding-bottom: 1.5rem;
+        padding: 1rem; /* Riduci il padding per schermi piccoli */
     }
 
     #filter-container {
-        flex-direction: column;
-        gap: 1rem;
-        padding-top: 1rem;
+        flex-direction: column; /* Impila filtri su schermi piccoli */
+        gap: 0.8rem;
     }
 
-    .button-group-row {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-    .button-group-row button, .button-group-row a {
-        width: 100%; /* I bottoni tornano a larghezza piena su mobile */
+    #category-filter,
+    #search-input {
+        width: 100%; /* Larghezza piena */
     }
 
-    /* La riga di bottoni sotto l'output su mobile deve impilare gli elementi */
+    .card-header h3 {
+        font-size: 1.15rem;
+    }
+
+    .card-content {
+        padding: 1rem;
+    }
+
+    .button-group-row,
     .post-output-buttons {
-        flex-direction: column;
-        gap: 0.5rem;
+        flex-direction: column; /* Impila i bottoni su schermi piccoli */
+        gap: 0.6rem;
+    }
+
+    .button-group-row button,
+    .post-output-buttons button {
+        width: 100%; /* Larghezza piena per i bottoni impilati */
+        min-width: unset; /* Rimuovi la larghezza minima */
     }
 
     .ai-external-control-group {
-        flex-direction: column; /* Impila select e bottone su mobile */
-        width: 100%; /* Occupa tutta la larghezza disponibile */
+        flex-direction: column; /* Impila select e button su schermi piccoli */
+        width: 100%;
+        min-width: unset;
     }
-
     .ai-external-control-group .ai-choice-select,
-    .ai-external-control-group .continue-on-ai-button,
-    .post-output-buttons button { /* Tutti gli elementi della riga sotto l'output */
-        width: 100%; /* Fai in modo che occupino tutta la larghezza disponibile all'interno del gruppo */
-        padding: 0.8rem 1rem; /* Riporta al padding normale per mobile */
-        font-size: 1rem; /* Riporta al font-size normale per mobile */
-        box-shadow: 0 2px 5px var(--shadow-light); /* Ripristina l'ombra per coerenza */
+    .ai-external-control-group .continue-on-ai-button {
+        width: 100%;
+        min-width: unset;
     }
 
-    /* Selettore specifico per il select su mobile, se necessita di override ulteriori */
-    .ai-external-control-group .ai-choice-select {
-        background-color: var(--card-bg); /* Sfondo bianco standard */
-        color: var(--dark-text); /* Testo scuro */
-        border: 1px solid var(--border-color); /* Bordo standard */
-        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); /* Freccia nera */
+    .custom-modal-content {
+        padding: 20px;
     }
 }
