@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Prompt AI per Giornalisti</title>
-    <link rel="stylesheet" href="css/style.css"> 
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <header>
@@ -64,18 +64,18 @@
                     },
                     body: JSON.stringify({ sheetId: sheetID, sheetRange: sheetRange }), // Qui vengono passati i dati
                 });
-                
+
                 console.log("DEBUG: 1. Sto provando a scaricare i prompt da Netlify Function.");
-                
+
                 if (!response.ok) {
                     const errorData = await response.json();
                     console.error(`DEBUG: 2. Errore nella risposta della Netlify Function: ${response.status}. Dettagli:`, errorData);
                     throw new Error(`Errore nel caricamento dei dati: ${errorData.error || response.statusText}`);
                 }
-                
+
                 const data = await response.json();
                 console.log("DEBUG: 3. Dati RAW ricevuti dalla Netlify Function:", data);
-                
+
                 if (!data.values || data.values.length === 0) {
                     console.warn("DEBUG: 4. Nessun dato 'values' trovato nel foglio o foglio vuoto.");
                 }
@@ -140,7 +140,8 @@
 
             const output = document.createElement("div");
             output.className = "prompt-output";
-            output.innerHTML = "Il prompt personalizzato apparirà qui dopo la generazione."; // Cambiato in innerHTML per il markdown
+            // Inizialmente, impostiamo un messaggio di base. Marked.parse verrà usato dopo.
+            output.innerHTML = "Il prompt personalizzato apparirà qui dopo la generazione.";
 
             // --- INIZIO AGGIUNTE PER CARICAMENTO AI ---
             const aiLoadingIndicator = document.createElement("div");
@@ -180,8 +181,8 @@
                     finalPrompt = finalPrompt.replace(/\[DETTAGLI\]/g, dettagliInput ? dettagliInput.value || "[DETTAGLI]" : "[DETTAGLI]");
                 }
 
-                output.textContent = finalPrompt; // Usa textContent qui per mostrare il prompt grezzo
-                // Resetta il messaggio di output AI se era presente
+                // *** CORREZIONE QUI: Usa marked.parse per il prompt generato ***
+                output.innerHTML = marked.parse(finalPrompt);
                 output.style.color = '#444'; // Colore normale del testo del prompt
             };
 
@@ -189,8 +190,11 @@
             copyButton.textContent = "Copia prompt";
             copyButton.className = "copy-button";
             copyButton.onclick = () => {
+                // Per copiare il testo corretto, prendiamo il testo dal div output.
+                // Se `marked.parse` è stato usato, `innerText` restituirà il testo "pulito" (senza tag HTML)
+                const textToCopy = output.innerText;
                 const tempTextarea = document.createElement("textarea");
-                tempTextarea.value = output.innerText; // Usa innerText per copiare il testo visibile
+                tempTextarea.value = textToCopy;
                 document.body.appendChild(tempTextarea);
                 tempTextarea.select();
                 document.execCommand("copy");
@@ -205,19 +209,13 @@
             generateAIResponseButton.className = "ai-generate-button";
             generateAIResponseButton.onclick = async () => {
                 // 1. Assicurati che il prompt sia già stato generato
-                // Per copiare sia il prompt generato che la risposta AI,
-                // il valore di 'generatedPrompt' deve contenere SOLO il prompt,
-                // non l'output completo del div 'output'.
-                // Quindi, dobbiamo fare in modo che 'generatedPrompt' sia il testo puro del prompt,
-                // non ciò che appare nel div 'output'.
-                // Qui usiamo il prompt generato dal bottone 'Genera prompt'.
-                const initialPrompt = promptTemplate
+                // Qui usiamo il prompt generato dal bottone 'Genera prompt', ma il suo valore puro
+                let finalPromptForAI = promptTemplate
                     .replace(/\[ESPERIENZA\]/g, esperienzaInput.value || "[ESPERIENZA]")
                     .replace(/\[GENERE\]/g, genereInput.value || "[GENERE]")
                     .replace(/\[TESTATA\]/g, testataInput.value || "[TESTATA]");
-                
+
                 const textAreaInput = cardContent.querySelector(`#area-text-${index}`);
-                let finalPromptForAI = initialPrompt;
                 if (textAreaInput) {
                     finalPromptForAI = finalPromptForAI.replace(/\[AREA_TEXT\]/g, textAreaInput.value || "[AREA_TEXT]");
                 } else {
@@ -236,11 +234,12 @@
                     finalPromptForAI = finalPromptForAI.replace(/\[DETTAGLI\]/g, dettagliInput ? dettagliInput.value || "[DETTAGLI]" : "[DETTAGLI]");
                 }
 
-
-                if (!finalPromptForAI || finalPromptForAI === "Il prompt personalizzato apparirà qui dopo la generazione." || finalPromptForAI.includes("Errore AI:") || finalPromptForAI.includes("Errore di connessione:")) {
-                    alert("Per favor, genera prima il prompt personalizzato.");
+                // Controlla se il prompt è ancora nel suo stato iniziale o di errore
+                if (!finalPromptForAI || output.innerHTML.includes("Il prompt personalizzato apparirà qui dopo la generazione.")) {
+                    alert("Per favore, genera prima il prompt personalizzato.");
                     return;
                 }
+
 
                 // 2. Mostra l'indicatore di caricamento
                 aiLoadingIndicator.style.display = 'flex'; // Mostra il contenitore flex per spinner e testo
@@ -301,7 +300,7 @@
                 const testoInput = document.createElement("textarea");
                 testoInput.rows = 4;
                 testoInput.id = `area-text-${index}`;
-                
+
                 testoLabel.textContent = typeof labelTesto === 'string' && labelTesto.trim() !== '' ? labelTesto : "Incolla qui il testo da elaborare:";
                 testoInput.placeholder = typeof placeholderText === 'string' && placeholderText.trim() !== '' ? placeholderText : "Incolla qui il testo...";
 
@@ -397,7 +396,7 @@
                     cardContent.setAttribute("aria-hidden", "false");
                 }
             };
-            
+
             cardHeader.onkeydown = (event) => {
                 if (event.key === "Enter" || event.key === " ") {
                     event.preventDefault();
@@ -432,7 +431,7 @@
 
             function renderCards(filterCategoria = "", searchTerm = "") {
                 loadingSpinner.classList.add("hidden");
-                
+
                 promptContainer.innerHTML = ""; // Pulisci il container prima di aggiungere le card
                 const filteredPrompts = prompts.filter((row) => {
                     if (row.length < 6) {
@@ -440,7 +439,7 @@
                         return false;
                     }
                     const [titolo, descrizione, prompt, categoria, labelTesto, placeholderText, labelLang] = row;
-                    
+
                     const matchesCategory = !filterCategoria || (categoria && categoria.toLowerCase() === filterCategoria);
                     const matchesSearch = !searchTerm ||
                                                 (titolo && titolo.toLowerCase().includes(searchTerm)) ||
