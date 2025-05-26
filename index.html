@@ -238,8 +238,8 @@
             padding: 1.2rem;
             margin-top: 1.5rem;
             border-radius: 8px;
-            white-space: pre-wrap;
-            font-family: monospace;
+            /* white-space: pre-wrap;  <-- Rimuovere o modificare se si usa Marked.js per gestire il layout */
+            font-family: sans-serif; /* Cambiato per una migliore leggibilità del testo generato */
             font-size: 0.95rem;
             color: #444;
             border: 1px dashed var(--border-color);
@@ -445,7 +445,7 @@
             class="feedback-button">Lascia un Feedback</a>
     </div>
 
-    <script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> <script>
         // ID del tuo Foglio Google - Questo DEVE rimanere fisso qui per l'app
         const sheetID = "1uDoHvedmUcczP4rjI0GNZWOWstMPfhYuUahNPPbMoxg";
         const sheetRange = "Prompt Prestabiliti!A2:G"; // <-- Il range rimane lo stesso
@@ -550,7 +550,7 @@
 
             const output = document.createElement("div");
             output.className = "prompt-output";
-            output.textContent = "Il prompt personalizzato apparirà qui dopo la generazione.";
+            output.innerHTML = "Il prompt personalizzato apparirà qui dopo la generazione."; // Cambiato in innerHTML per il markdown
 
             // --- INIZIO AGGIUNTE PER CARICAMENTO AI ---
             const aiLoadingIndicator = document.createElement("div");
@@ -590,7 +590,7 @@
                     finalPrompt = finalPrompt.replace(/\[DETTAGLI\]/g, dettagliInput ? dettagliInput.value || "[DETTAGLI]" : "[DETTAGLI]");
                 }
 
-                output.textContent = finalPrompt;
+                output.textContent = finalPrompt; // Usa textContent qui per mostrare il prompt grezzo
                 // Resetta il messaggio di output AI se era presente
                 output.style.color = '#444'; // Colore normale del testo del prompt
             };
@@ -600,7 +600,7 @@
             copyButton.className = "copy-button";
             copyButton.onclick = () => {
                 const tempTextarea = document.createElement("textarea");
-                tempTextarea.value = output.textContent;
+                tempTextarea.value = output.innerText; // Usa innerText per copiare il testo visibile
                 document.body.appendChild(tempTextarea);
                 tempTextarea.select();
                 document.execCommand("copy");
@@ -615,15 +615,46 @@
             generateAIResponseButton.className = "ai-generate-button";
             generateAIResponseButton.onclick = async () => {
                 // 1. Assicurati che il prompt sia già stato generato
-                const generatedPrompt = output.textContent;
-                if (!generatedPrompt || generatedPrompt === "Il prompt personalizzato apparirà qui dopo la generazione." || generatedPrompt.includes("Errore AI:") || generatedPrompt.includes("Errore di connessione:")) {
+                // Per copiare sia il prompt generato che la risposta AI,
+                // il valore di 'generatedPrompt' deve contenere SOLO il prompt,
+                // non l'output completo del div 'output'.
+                // Quindi, dobbiamo fare in modo che 'generatedPrompt' sia il testo puro del prompt,
+                // non ciò che appare nel div 'output'.
+                // Qui usiamo il prompt generato dal bottone 'Genera prompt'.
+                const initialPrompt = promptTemplate
+                    .replace(/\[ESPERIENZA\]/g, esperienzaInput.value || "[ESPERIENZA]")
+                    .replace(/\[GENERE\]/g, genereInput.value || "[GENERE]")
+                    .replace(/\[TESTATA\]/g, testataInput.value || "[TESTATA]");
+                
+                const textAreaInput = cardContent.querySelector(`#area-text-${index}`);
+                let finalPromptForAI = initialPrompt;
+                if (textAreaInput) {
+                    finalPromptForAI = finalPromptForAI.replace(/\[AREA_TEXT\]/g, textAreaInput.value || "[AREA_TEXT]");
+                } else {
+                    finalPromptForAI = finalPromptForAI.replace(/\[AREA_TEXT\]/g, '');
+                }
+
+                const langSelect = cardContent.querySelector(`#lang-${index}`);
+                if (langSelect) {
+                    finalPromptForAI = finalPromptForAI.replace(/\[LANG\]/g, langSelect.value || "[LANG]");
+                } else {
+                    finalPromptForAI = finalPromptForAI.replace(/\[LANG\]/g, '');
+                }
+
+                if (promptTemplate.includes("[DETTAGLI]")) {
+                    const dettagliInput = cardContent.querySelector(`#dettagli-${index}`);
+                    finalPromptForAI = finalPromptForAI.replace(/\[DETTAGLI\]/g, dettagliInput ? dettagliInput.value || "[DETTAGLI]" : "[DETTAGLI]");
+                }
+
+
+                if (!finalPromptForAI || finalPromptForAI === "Il prompt personalizzato apparirà qui dopo la generazione." || finalPromptForAI.includes("Errore AI:") || finalPromptForAI.includes("Errore di connessione:")) {
                     alert("Per favore, genera prima il prompt personalizzato.");
                     return;
                 }
 
                 // 2. Mostra l'indicatore di caricamento
                 aiLoadingIndicator.style.display = 'flex'; // Mostra il contenitore flex per spinner e testo
-                output.textContent = "Generazione della risposta AI in corso..."; // Messaggio temporaneo
+                output.innerHTML = "Generazione della risposta AI in corso..."; // Messaggio temporaneo
                 output.style.color = '#888'; // Colore per indicare stato di caricamento
 
                 try {
@@ -632,29 +663,30 @@
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ prompt: generatedPrompt }),
+                        body: JSON.stringify({ prompt: finalPromptForAI }), // Passa il prompt pulito all'AI
                     });
 
                     if (!response.ok) {
                         const errorData = await response.json();
                         console.error("Errore nella risposta della Cloud Function Gemini:", errorData);
-                        output.textContent = `Errore AI: ${errorData.error || response.statusText}. Riprova.`;
+                        output.innerHTML = `Errore AI: ${errorData.error || response.statusText}. Riprova.`;
                         output.style.color = '#cc0000'; // Colore per errore
                         return;
                     }
 
                     const data = await response.json();
                     if (data.aiResponse) {
-                        output.textContent = data.aiResponse;
+                        // CONVERTI IL MARKDOWN IN HTML QUI
+                        output.innerHTML = marked.parse(data.aiResponse);
                         output.style.color = '#222'; // Colore normale per la risposta AI
                     } else {
-                        output.textContent = "Nessuna risposta valida dall'AI.";
+                        output.innerHTML = "Nessuna risposta valida dall'AI.";
                         output.style.color = '#cc0000';
                     }
 
                 } catch (error) {
                     console.error("Errore durante la chiamata alla Cloud Function Gemini:", error);
-                    output.textContent = `Errore di connessione: ${error.message}. Verifica la console per dettagli.`;
+                    output.innerHTML = `Errore di connessione: ${error.message}. Verifica la console per dettagli.`;
                     output.style.color = '#cc0000';
                 } finally {
                     // 3. Nascondi l'indicatore di caricamento
