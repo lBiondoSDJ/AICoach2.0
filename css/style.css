@@ -29,15 +29,15 @@
     --button-ai-generate-hover: #0056b3;
     --button-ai-continue-bg: #17a2b8; /* Azzurro/Turchese per "Continua su AI personalizzata" */
     --button-ai-continue-hover: #138496;
-    --button-reset-bg: #dc3545; /* Rosso per reset */
-    --button-reset-hover: #c82333;
+    --button-reset-bg: #dc3545; /* Questo sarà il colore di fallback, ma useremo il bordo */
+    --button-reset-hover: #c82333; /* Questo sarà il colore di fallback per l'hover */
     --button-text-color: var(--light-text);
 
     /* Nuove variabili per la terza riga di bottoni (più piccoli e con stili differenziati) */
     --button-tertiary-bg: #f0f0f0; /* Sfondo più chiaro */
     --button-tertiary-hover: #e0e0e0;
     --button-tertiary-text: #555; /* Testo più scuro */
-    --button-tertiary-border: #ccc; /* Bordo sottile */
+    --button-tertiary-border: #ccc; /* Bordo sottile per bottoni normali della terza riga */
     --button-reset-outline-color: #dc3545; /* Colore rosso per l'outline del reset */
 }
 
@@ -216,9 +216,11 @@ textarea {
     margin-bottom: 0;
 }
 
-.button-group {
+/* Rimuovi la classe .button-group da qui, sarà applicata alla riga specifica se necessario */
+/* .button-group {
     margin-top: 1.5rem;
-}
+} */
+
 
 /* Stile generico per tutti i bottoni */
 button {
@@ -228,7 +230,7 @@ button {
     cursor: pointer;
     font-size: 1rem;
     font-weight: 600;
-    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease, border-color 0.2s ease; /* Aggiunto border-color */
     box-shadow: 0 2px 5px var(--shadow-light);
     color: var(--button-text-color);
     text-align: center;
@@ -275,48 +277,52 @@ button:active {
 
 /* --- NUOVI STILI PER LA TERZA RIGA DI BOTTONI E IL SELECT AI ESTERNA --- */
 
-/* Applica stili specifici alla terza riga di bottoni per renderli più piccoli e uniformi */
-.button-group-row:nth-child(3) {
+/* Contenitore generale per i bottoni in fondo al prompt-output */
+.post-output-buttons {
+    margin-top: 1.5rem; /* Spazio sopra questi bottoni dopo l'output */
     display: flex;
     gap: 0.8rem;
-    /* justify-content: space-between; */ /* Non più space-around, ma flex per controllo preciso */
+    justify-content: center; /* Centra gli elementi nella riga */
     align-items: stretch; /* Tutti gli elementi della riga hanno la stessa altezza */
     flex-wrap: wrap;
     font-size: 0.9rem;
-    padding-top: 0.5rem;
 }
 
-/* Stili per tutti i bottoni della terza riga */
-.button-group-row:nth-child(3) button {
+/* Stili per tutti i bottoni e i gruppi di bottoni all'interno di .post-output-buttons */
+.post-output-buttons button,
+.post-output-buttons .ai-external-control-group {
     padding: 0.6rem 0.8rem;
     font-size: 0.9rem;
     color: var(--button-tertiary-text);
     background-color: var(--button-tertiary-bg);
-    border: 1px solid var(--button-tertiary-border);
+    border: 1px solid var(--button-tertiary-border); /* Bordo standard per la terza riga */
     box-shadow: none;
     flex-grow: 1; /* Permette loro di crescere e occupare lo spazio disponibile */
     flex-shrink: 1; /* Permette loro di restringersi */
     flex-basis: 0; /* Base flessibile per la distribuzione equa dello spazio */
     min-width: 80px; /* Evita che si schiaccino troppo */
+    box-sizing: border-box; /* Assicura che padding e border siano inclusi nella larghezza */
 }
 
-.button-group-row:nth-child(3) button:hover {
+
+.post-output-buttons button:hover {
     background-color: var(--button-tertiary-hover);
     transform: translateY(-1px);
     box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
 
-/* Stili specifici per il bottone Reset Prompt */
+/* Stili specifici per il bottone Reset Prompt: solo l'outline diventa rosso */
 .reset-button {
-    background-color: var(--button-tertiary-bg); /* Mantiene il colore chiaro */
-    color: var(--button-tertiary-text); /* Mantiene il testo scuro */
+    background-color: var(--button-tertiary-bg); /* Sfondo chiaro come gli altri della riga */
+    color: var(--button-tertiary-text); /* Testo scuro come gli altri della riga */
     border: 1px solid var(--button-reset-outline-color); /* Bordo rosso */
-    /* z-index: 1; */ /* Potrebbe essere utile se ci fossero sovrapposizioni */
+    /* Nessun box-shadow per mantenere l'aspetto minimalista, se non quello sull'hover */
 }
 
 .reset-button:hover {
     background-color: var(--button-tertiary-hover); /* Sfondo chiaro al hover */
     border-color: var(--button-reset-outline-color); /* Bordo rosso al hover */
+    /* Mantieni il transform e box-shadow definito in .post-output-buttons button:hover */
 }
 
 
@@ -328,20 +334,21 @@ button:active {
     flex-shrink: 1;
     flex-basis: 0; /* Base flessibile */
     min-width: 180px; /* Min-width per il gruppo per evitare eccessiva compressione */
+    /* Il padding, font-size, background, border, shadow sono ereditati da .post-output-buttons .ai-external-control-group */
 }
 
 .ai-external-control-group .ai-choice-select {
     flex-grow: 1; /* Il select prende metà dello spazio del gruppo */
     width: auto;
     min-width: 0;
-    padding: 0.6rem 0.8rem;
-    font-size: 0.9rem;
-    background-color: var(--card-bg);
-    color: var(--dark-text);
-    border: 1px solid var(--border-color);
+    padding: 0.6rem 0.8rem; /* Stesso padding dei bottoni */
+    font-size: 0.9rem; /* Stesso font-size dei bottoni */
+    background-color: var(--card-bg); /* Sfondo bianco o chiaro */
+    color: var(--dark-text); /* Testo scuro */
+    border: 1px solid var(--border-color); /* Bordo standard */
     border-radius: 8px;
     appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); /* Freccia nera */
     background-repeat: no-repeat;
     background-position: right 0.8rem center;
     background-size: 1.2rem;
@@ -363,12 +370,12 @@ button:active {
     flex-grow: 1; /* Il bottone prende l'altra metà dello spazio del gruppo */
     width: auto;
     min-width: unset;
-    padding: 0.6rem 0.8rem;
-    font-size: 0.9rem;
-    background-color: var(--button-ai-continue-bg); /* Colore specifico per il bottone Vai a AI Esterna */
+    /* Colori specifici per il bottone Vai a AI Esterna */
+    background-color: var(--button-ai-continue-bg);
     color: var(--button-text-color);
-    border: none; /* Rimuovi il bordo in modo che non abbia un doppio bordo con il genenico */
-    box-shadow: none;
+    border: none; /* Rimuovi il bordo che altrimenti sarebbe ereditato da .post-output-buttons button */
+    box-shadow: none; /* Rimuovi l'ombra che altrimenti sarebbe ereditata */
+    /* Il padding e font-size sono ereditati da .post-output-buttons button */
 }
 
 .ai-external-control-group .continue-on-ai-button:hover {
@@ -378,7 +385,7 @@ button:active {
 }
 
 
-/* --- FINE NUOVI STILI TERZA RIGA --- */
+/* --- FINE STILI TERZA RIGA / POST-OUTPUT --- */
 
 
 .prompt-output {
@@ -604,8 +611,8 @@ button:active {
         width: 100%; /* I bottoni tornano a larghezza piena su mobile */
     }
 
-    /* La terza riga su mobile deve impilare gli elementi */
-    .button-group-row:nth-child(3) {
+    /* La riga di bottoni sotto l'output su mobile deve impilare gli elementi */
+    .post-output-buttons {
         flex-direction: column;
         gap: 0.5rem;
     }
@@ -617,7 +624,7 @@ button:active {
 
     .ai-external-control-group .ai-choice-select,
     .ai-external-control-group .continue-on-ai-button,
-    .button-group-row:nth-child(3) button { /* Tutti gli elementi della terza riga */
+    .post-output-buttons button { /* Tutti gli elementi della riga sotto l'output */
         width: 100%; /* Fai in modo che occupino tutta la larghezza disponibile all'interno del gruppo */
         padding: 0.8rem 1rem; /* Riporta al padding normale per mobile */
         font-size: 1rem; /* Riporta al font-size normale per mobile */
