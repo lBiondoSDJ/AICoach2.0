@@ -198,18 +198,15 @@ textarea {
 /* Stili per i gruppi di bottoni */
 .button-group-row {
     display: flex;
-    gap: 0.8rem;
+    gap: 0.8rem; /* Spazio tra i bottoni */
     margin-bottom: 0.8rem;
-    flex-wrap: wrap;
-    justify-content: flex-start;
+    flex-wrap: wrap; /* Permette il wrapping su schermi piccoli */
+    justify-content: space-around; /* Distribuisce lo spazio uniformemente */
+    align-items: stretch; /* Assicura che i bottoni abbiano la stessa altezza se il testo varia */
 }
 
 .button-group-row:last-child {
     margin-bottom: 0;
-}
-
-.button-group-row button, .button-group-row a {
-    flex-shrink: 0;
 }
 
 .button-group {
@@ -219,7 +216,7 @@ textarea {
 /* Stile generico per tutti i bottoni */
 button {
     border: none;
-    padding: 0.8rem 1.8rem;
+    padding: 0.8rem 1rem; /* Ridotto il padding laterale per dare più spazio al testo se necessario */
     border-radius: 8px;
     cursor: pointer;
     font-size: 1rem;
@@ -227,6 +224,11 @@ button {
     transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
     box-shadow: 0 2px 5px var(--shadow-light);
     color: var(--button-text-color);
+    text-align: center; /* Centra il testo all'interno del bottone */
+    flex: 1; /* Permette ai bottoni di distribuirsi equamente */
+    min-width: 0; /* Impedisce che il contenuto causi overflow */
+    box-sizing: border-box; /* Include padding e border nella larghezza */
+    width: calc(50% - 0.4rem); /* Per 2 bottoni per riga, larghezza esatta (metà meno metà del gap) */
 }
 
 button:hover {
@@ -239,7 +241,7 @@ button:active {
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-/* Stili specifici per tipo di bottone - ORA APPLICATI CORRETTAMENTE */
+/* Stili specifici per tipo di bottone */
 .generate-prompt-button {
     background-color: var(--button-primary-bg);
 }
@@ -249,7 +251,7 @@ button:active {
 }
 
 .copy-button {
-    background-color: var(--button-copy-bg); /* Grigio per copia */
+    background-color: var(--button-copy-bg);
 }
 
 .copy-button:hover {
@@ -257,15 +259,15 @@ button:active {
 }
 
 .ai-generate-button {
-    background-color: var(--button-ai-generate-bg); /* Blu per genera risposta AI */
+    background-color: var(--button-ai-generate-bg);
 }
 
 .ai-generate-button:hover {
     background-color: var(--button-ai-generate-hover);
 }
 
-.continue-on-ai-button { /* Ho rinominato la classe da 'ai-generate-button' a 'continue-on-ai-button' nell'HTML per distinguerla e applicare uno stile diverso */
-    background-color: var(--button-ai-continue-bg); /* Azzurro/Turchese per continua su AI */
+.continue-on-ai-button {
+    background-color: var(--button-ai-continue-bg);
 }
 
 .continue-on-ai-button:hover {
@@ -273,7 +275,7 @@ button:active {
 }
 
 .reset-button {
-    background-color: var(--button-reset-bg); /* Rosso per il reset */
+    background-color: var(--button-reset-bg);
 }
 
 .reset-button:hover {
@@ -500,6 +502,6 @@ button:active {
         gap: 0.5rem;
     }
     .button-group-row button, .button-group-row a {
-        width: 100%;
+        width: 100%; /* I bottoni tornano a larghezza piena su mobile */
     }
 }

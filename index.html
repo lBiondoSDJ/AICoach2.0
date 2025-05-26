@@ -9,7 +9,7 @@
 <body>
     <header>
         <h1>Generatore di Prompt AI per Giornalisti</h1>
-        <p>Crea i tuoi prompt per l'intelligenza artificiale in modo professionale e veloce.</p>
+        <p>Personalizza i tuoi prompt per l'intelligenza artificiale a partire da template professionali.</p>
     </header>
     <main>
         <div class="main-content-wrapper">
@@ -168,12 +168,15 @@
             aiLoadingIndicator.style.display = 'none';
             aiLoadingIndicator.innerHTML = '<div class="ai-spinner"></div><span>Generazione risposta AI...</span>';
 
-            // Gruppi di bottoni per le due righe
+            // Gruppi di bottoni per le tre righe
             const buttonGroupRow1 = document.createElement("div");
             buttonGroupRow1.className = "button-group-row";
 
             const buttonGroupRow2 = document.createElement("div");
             buttonGroupRow2.className = "button-group-row";
+
+            const buttonGroupRow3 = document.createElement("div");
+            buttonGroupRow3.className = "button-group-row";
 
             // Contenitore principale per tutti i gruppi di bottoni
             const buttonGroupMain = document.createElement("div");
@@ -181,7 +184,7 @@
 
 
             const generatePromptButton = document.createElement("button");
-            generatePromptButton.textContent = "Genera prompt";
+            generatePromptButton.textContent = "Genera Prompt";
             generatePromptButton.className = "generate-prompt-button";
             generatePromptButton.onclick = () => {
                 let finalPrompt = promptTemplate
@@ -234,7 +237,7 @@
             };
 
             const generateAIResponseButton = document.createElement("button");
-            generateAIResponseButton.textContent = "Genera risposta AI";
+            generateAIResponseButton.textContent = "Genera Risposta AI";
             generateAIResponseButton.className = "ai-generate-button";
             generateAIResponseButton.onclick = async () => {
                 if (!currentGeneratedPrompt || currentGeneratedPrompt.includes("[") || currentGeneratedPrompt.includes("]") ) {
@@ -306,7 +309,7 @@
 
             // Bottone "Continua su AI personalizzata"
             const continueOnGeminiButton = document.createElement("button");
-            continueOnGeminiButton.textContent = "Continua su AI personalizzata";
+            continueOnGeminiButton.textContent = "Vai a AI esterna"; // Testo aggiornato
             continueOnGeminiButton.className = "continue-on-ai-button";
             continueOnGeminiButton.onclick = () => {
                 if (!currentGeneratedPrompt && !currentAIResponse) {
@@ -430,23 +433,22 @@
             }
 
             // Aggiungi i bottoni ai rispettivi gruppi di riga
+            // Riga 1: Genera Prompt, Genera Risposta AI
             buttonGroupRow1.appendChild(generatePromptButton);
-            buttonGroupRow1.appendChild(copyPromptButton);
+            buttonGroupRow1.appendChild(generateAIResponseButton);
 
-            buttonGroupRow2.appendChild(generateAIResponseButton);
+            // Riga 2: Copia Prompt, Copia Risposta AI
+            buttonGroupRow2.appendChild(copyPromptButton);
             buttonGroupRow2.appendChild(copyAIResponseButton);
-            buttonGroupRow2.appendChild(continueOnGeminiButton);
+
+            // Riga 3: Vai a AI esterna, Reset Prompt
+            buttonGroupRow3.appendChild(continueOnGeminiButton);
+            buttonGroupRow3.appendChild(resetButton);
+
 
             // Aggiungi i gruppi di bottoni al contenitore principale
             buttonGroupMain.appendChild(buttonGroupRow1);
             buttonGroupMain.appendChild(buttonGroupRow2);
-
-            // Aggiungi il bottone di reset come elemento separato (o in una terza riga se preferisci)
-            // Per ora lo mettiamo nella riga 2, ma puoi creare una buttonGroupRow3 se vuoi.
-            // Se lo vuoi su una riga separata sotto:
-            const buttonGroupRow3 = document.createElement("div");
-            buttonGroupRow3.className = "button-group-row";
-            buttonGroupRow3.appendChild(resetButton);
             buttonGroupMain.appendChild(buttonGroupRow3);
 
 
