@@ -1,8 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
 
 :root {
-    --primary-color: #202840;
-    --secondary-color: #4CAF50; /* Verde */
+    --primary-color: #202840; /* Blu scuro, quasi nero, elegante */
+    --secondary-color: #4CAF50; /* Verde brillante ma non troppo aggressivo, per azioni "positive" */
+    --accent-color: #007bff; /* Un blu più vivace per le azioni AI principali */
     --light-bg: #f5f7fa;
     --dark-text: #333;
     --light-text: #fff;
@@ -14,10 +15,21 @@
     --accordion-header-hover: #dee2e6;
     --accordion-border: #ced4da;
     --feedback-button-color: var(--secondary-color);
-    --feedback-button-hover: #449d48; /* tonalità più scura del verde */
-    --content-max-width: 900px; /* Larghezza massima desiderata per il contenuto */
-    --main-padding: 1.5rem; /* Padding interno standard per main e feedback-section */
-    --bottom-spacing: 3rem; /* Spazio extra sotto le card */
+    --feedback-button-hover: #449d48;
+    --content-max-width: 900px;
+    --main-padding: 1.5rem;
+    --bottom-spacing: 3rem;
+
+    /* Nuove variabili per una gestione più flessibile dei bottoni */
+    --button-primary-bg: var(--primary-color);
+    --button-primary-hover: #1a2235;
+    --button-secondary-bg: var(--secondary-color); /* Per azioni come "copia" o "continua" */
+    --button-secondary-hover: #449d48;
+    --button-ai-bg: var(--accent-color); /* Specifico per azioni AI "core" */
+    --button-ai-hover: #0056b3;
+    --button-reset-bg: #dc3545; /* Rosso per reset */
+    --button-reset-hover: #c82333;
+    --button-text-color: var(--light-text);
 }
 
 body {
@@ -185,78 +197,77 @@ textarea {
 .button-group-row {
     display: flex;
     gap: 0.8rem;
-    margin-bottom: 0.8rem; /* Spazio tra le righe */
-    flex-wrap: wrap; /* Permette il wrapping su schermi piccoli */
-    justify-content: flex-start; /* Allinea a sinistra */
+    margin-bottom: 0.8rem;
+    flex-wrap: wrap;
+    justify-content: flex-start;
 }
 
 .button-group-row:last-child {
-    margin-bottom: 0; /* Nessun margine sotto l'ultima riga */
+    margin-bottom: 0;
 }
 
-/* Assicurati che i bottoni prendano spazio solo quando serve */
 .button-group-row button, .button-group-row a {
-    flex-shrink: 0; /* Evita che i bottoni si rimpiccioliscano troppo */
+    flex-shrink: 0;
 }
 
-/* Contenitore generale per tutti i gruppi di bottoni */
 .button-group {
     margin-top: 1.5rem;
-    /* Rimosso display flex e gap qui, perché gestiti dalle .button-group-row */
 }
 
+/* Stile generico per tutti i bottoni */
 button {
-    background-color: var(--primary-color);
-    color: var(--light-text);
     border: none;
     padding: 0.8rem 1.8rem;
     border-radius: 8px;
     cursor: pointer;
     font-size: 1rem;
     font-weight: 600;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 5px var(--shadow-light);
+    color: var(--button-text-color); /* Testo bianco di default per tutti i bottoni colorati */
 }
 
 button:hover {
-    background-color: #1a2235;
     transform: translateY(-2px);
+    box-shadow: 0 4px 10px var(--shadow-medium);
 }
 
 button:active {
     transform: translateY(0);
-    box-shadow: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Stili specifici per tipo di bottone */
+.generate-prompt-button {
+    background-color: var(--button-primary-bg);
+}
+
+.generate-prompt-button:hover {
+    background-color: var(--button-primary-hover);
 }
 
 .copy-button {
-    background-color: var(--secondary-color);
-    color: var(--light-text);
-    border: 2px solid var(--secondary-color);
-    transition: background-color 0.2s ease, border-color 0.2s ease;
+    background-color: var(--button-secondary-bg); /* Verde per l'azione di copia */
 }
 
 .copy-button:hover {
-    background-color: #449d48;
-    border-color: #449d48;
+    background-color: var(--button-secondary-hover);
 }
 
-/* Nuovo stile per il bottone di reset */
+.ai-generate-button {
+    background-color: var(--button-ai-bg); /* Blu per l'azione di generazione AI */
+}
+
+.ai-generate-button:hover {
+    background-color: var(--button-ai-hover);
+}
+
 .reset-button {
-    background-color: #dc3545; /* Rosso */
-    color: var(--light-text);
-    border: none;
-    padding: 0.8rem 1.8rem;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: 600;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    background-color: var(--button-reset-bg); /* Rosso per il reset */
 }
 
 .reset-button:hover {
-    background-color: #c82333;
-    transform: translateY(-2px);
+    background-color: var(--button-reset-hover);
 }
 
 
@@ -265,10 +276,12 @@ button:active {
     padding: 1.2rem;
     margin-top: 1.5rem;
     border-radius: 8px;
-    font-family: sans-serif;
+    font-family: monospace, sans-serif; /* Per codice e testo generato, più leggibile */
     font-size: 0.95rem;
     color: #444;
     border: 1px dashed var(--border-color);
+    white-space: pre-wrap; /* Mantiene la formattazione e va a capo */
+    word-wrap: break-word; /* Rompe le parole lunghe se necessario */
 }
 
 .note {
@@ -281,7 +294,6 @@ button:active {
     margin-top: 1rem;
 }
 
-/* Stili per la sezione Feedback */
 .feedback-section {
     width: 100%;
     max-width: var(--content-max-width);
@@ -325,7 +337,6 @@ button:active {
     box-shadow: none;
 }
 
-/* --- INIZIO AGGIUNTE PER SPINNER GLOBALE --- */
 .spinner-container {
     display: flex;
     justify-content: center;
@@ -354,31 +365,6 @@ button:active {
 .hidden {
     display: none !important;
 }
-/* --- FINE AGGIUNTE PER SPINNER GLOBALE --- */
-
-/* --- INIZIO AGGIUNTE PER GENERAZIONE RISPOSTA AI --- */
-.ai-generate-button {
-    background-color: #007bff; /* Un blu per distinguere */
-    color: var(--light-text);
-    border: none;
-    padding: 0.8rem 1.8rem;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: 600;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-.ai-generate-button:hover {
-    background-color: #0056b3;
-    transform: translateY(-2px);
-}
-
-.ai-generate-button:active {
-    transform: translateY(0);
-    box-shadow: none;
-}
 
 .ai-loading-indicator {
     display: flex;
@@ -393,7 +379,7 @@ button:active {
 
 .ai-spinner {
     border: 3px solid rgba(0, 0, 0, 0.1);
-    border-left-color: #007bff;
+    border-left-color: var(--accent-color); /* Spinner colore AI */
     border-radius: 50%;
     width: 20px;
     height: 20px;
@@ -402,8 +388,6 @@ button:active {
     vertical-align: middle;
     margin-right: 8px;
 }
-/* --- FINE AGGIUNTE PER GENERAZIONE RISPOSTA AI --- */
-
 
 /* Stili per il Modale personalizzato (Copy Confirmation) */
 .custom-modal-overlay {
@@ -412,7 +396,7 @@ button:active {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.6); /* Sfondo semi-trasparente */
+    background-color: rgba(0, 0, 0, 0.6);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -457,7 +441,7 @@ button:active {
     border-radius: 8px;
     max-height: 250px;
     overflow-y: auto;
-    white-space: pre-wrap; /* Mantiene la formattazione del testo */
+    white-space: pre-wrap;
     text-align: left;
     font-family: monospace;
     font-size: 0.95rem;
