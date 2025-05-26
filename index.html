@@ -69,6 +69,15 @@
         const promptContainer = document.getElementById("prompt-container");
         const loadingSpinner = document.getElementById("loading-spinner");
 
+        // Definizioni delle AI esterne
+        const externalAIs = [
+            { name: "Google Gemini", url: "https://gemini.google.com/app" },
+            { name: "ChatGPT (OpenAI)", url: "https://chat.openai.com/" },
+            { name: "Claude (Anthropic)", url: "https://claude.ai/" },
+            { name: "Perplexity AI", url: "https://www.perplexity.ai/" },
+            // Aggiungi altre AI qui se necessario
+        ];
+
         async function fetchPrompts() {
             loadingSpinner.classList.remove("hidden");
             promptContainer.innerHTML = '';
@@ -307,13 +316,29 @@
                 showCustomModal("Copia Effettuata", "La risposta AI è stata copiata negli appunti.");
             };
 
-            // Bottone "Continua su AI personalizzata"
-            const continueOnGeminiButton = document.createElement("button");
-            continueOnGeminiButton.textContent = "Vai a AI esterna"; // Testo aggiornato
-            continueOnGeminiButton.className = "continue-on-ai-button";
-            continueOnGeminiButton.onclick = () => {
+            // SELECT per la scelta dell'AI esterna
+            const externalAIChoice = document.createElement("select");
+            externalAIChoice.className = "ai-choice-select";
+            externalAIs.forEach(ai => {
+                const option = document.createElement("option");
+                option.value = ai.url;
+                option.textContent = ai.name;
+                externalAIChoice.appendChild(option);
+            });
+
+            // Bottone "Vai a AI esterna"
+            const continueOnExternalAIButton = document.createElement("button"); // Rinominato per chiarezza
+            continueOnExternalAIButton.textContent = "Vai a AI esterna";
+            continueOnExternalAIButton.className = "continue-on-ai-button";
+            continueOnExternalAIButton.onclick = () => {
                 if (!currentGeneratedPrompt && !currentAIResponse) {
                     showCustomModal("Azione non valida", "Genera un prompt o una risposta AI per continuare.");
+                    return;
+                }
+
+                const selectedAIUrl = externalAIChoice.value; // Ottiene l'URL dalla selezione
+                if (!selectedAIUrl) {
+                    showCustomModal("Selezione non valida", "Seleziona un'AI esterna dal menu a tendina.");
                     return;
                 }
 
@@ -326,7 +351,7 @@
                 }
                 contentToPrepopulate += "Ora puoi continuare la conversazione con la tua AI preferita partendo da questo contesto.";
 
-                const newWindow = window.open('https://gemini.google.com/', '_blank'); // Manteniamo Gemini come esempio
+                const newWindow = window.open(selectedAIUrl, '_blank');
                 if (newWindow) {
                     newWindow.focus();
                     setTimeout(() => {
@@ -441,8 +466,15 @@
             buttonGroupRow2.appendChild(copyPromptButton);
             buttonGroupRow2.appendChild(copyAIResponseButton);
 
-            // Riga 3: Vai a AI esterna, Reset Prompt
-            buttonGroupRow3.appendChild(continueOnGeminiButton);
+            // Riga 3: SELECT AI, Vai a AI esterna, Reset Prompt
+            // Creiamo un div contenitore per il select e il bottone "Vai a AI esterna"
+            const aiExternalControlGroup = document.createElement("div");
+            aiExternalControlGroup.className = "ai-external-control-group"; // Nuova classe per stile
+
+            aiExternalControlGroup.appendChild(externalAIChoice);
+            aiExternalControlGroup.appendChild(continueOnExternalAIButton);
+            buttonGroupRow3.appendChild(aiExternalControlGroup); // Aggiungi il gruppo di controllo alla riga 3
+
             buttonGroupRow3.appendChild(resetButton);
 
 

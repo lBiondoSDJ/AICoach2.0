@@ -213,10 +213,10 @@ textarea {
     margin-top: 1.5rem;
 }
 
-/* Stile generico per tutti i bottoni */
-button {
+/* Stile generico per tutti i bottoni e select */
+button, .ai-choice-select { /* Aggiunto .ai-choice-select qui */
     border: none;
-    padding: 0.8rem 1rem; /* Ridotto il padding laterale per dare più spazio al testo se necessario */
+    padding: 0.8rem 1rem;
     border-radius: 8px;
     cursor: pointer;
     font-size: 1rem;
@@ -224,12 +224,42 @@ button {
     transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
     box-shadow: 0 2px 5px var(--shadow-light);
     color: var(--button-text-color);
-    text-align: center; /* Centra il testo all'interno del bottone */
+    text-align: center;
     flex: 1; /* Permette ai bottoni di distribuirsi equamente */
     min-width: 0; /* Impedisce che il contenuto causi overflow */
     box-sizing: border-box; /* Include padding e border nella larghezza */
     width: calc(50% - 0.4rem); /* Per 2 bottoni per riga, larghezza esatta (metà meno metà del gap) */
 }
+
+/* Stile per il gruppo di controllo AI esterna */
+.ai-external-control-group {
+    display: flex;
+    gap: 0.8rem;
+    flex: 1; /* Occupare metà dello spazio della riga */
+}
+
+.ai-external-control-group .ai-choice-select {
+    flex: 1; /* Il select occupa parte dello spazio del gruppo */
+    width: auto; /* Lascia che flex lo gestisca */
+    min-width: 80px; /* Min-width per evitare che si schiacci troppo */
+    /* Stili specifici per il select all'interno del gruppo */
+    background-color: var(--button-ai-continue-bg); /* Colore di default per il select */
+    color: var(--button-text-color);
+    border: 1px solid var(--button-ai-continue-bg); /* Bordo con lo stesso colore per coerenza */
+    appearance: none; /* Rimuove lo stile predefinito del browser per il select */
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); /* Freccia per il select */
+    background-repeat: no-repeat;
+    background-position: right 0.8rem center;
+    background-size: 1.2rem;
+}
+
+/* Assicurati che il bottone "Vai a AI esterna" all'interno del gruppo sia anche flessibile */
+.ai-external-control-group .continue-on-ai-button {
+    flex: 1; /* Il bottone occupa l'altra parte dello spazio del gruppo */
+    width: auto; /* Lascia che flex lo gestisca */
+    min-width: 80px; /* Min-width per evitare che si schiacci troppo */
+}
+
 
 button:hover {
     transform: translateY(-2px);
@@ -240,6 +270,19 @@ button:active {
     transform: translateY(0);
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
+
+/* Hover per il select (opzionale, per coerenza) */
+.ai-choice-select:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px var(--shadow-medium);
+}
+
+.ai-choice-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(32, 40, 64, 0.2);
+}
+
 
 /* Stili specifici per tipo di bottone */
 .generate-prompt-button {
@@ -503,5 +546,15 @@ button:active {
     }
     .button-group-row button, .button-group-row a {
         width: 100%; /* I bottoni tornano a larghezza piena su mobile */
+    }
+
+    .ai-external-control-group {
+        flex-direction: column; /* Impila select e bottone su mobile */
+        width: 100%; /* Occupa tutta la larghezza disponibile */
+    }
+
+    .ai-external-control-group .ai-choice-select,
+    .ai-external-control-group .continue-on-ai-button {
+        width: 100%; /* Fai in modo che occupino tutta la larghezza disponibile all'interno del gruppo */
     }
 }
