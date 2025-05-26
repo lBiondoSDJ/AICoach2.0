@@ -27,10 +27,13 @@
     --button-copy-hover: #5a6268;
     --button-ai-bg: var(--accent-color); /* Blu per "Genera Risposta AI" */
     --button-ai-hover: #0056b3;
-    --button-external-ai-bg: #f0ad4e; /* Arancione per "Vai a AI esterna" */
-    --button-external-ai-hover: #ec971f;
-    --button-reset-bg: #dc3545; /* Rosso per "Reset Output" */
-    --button-reset-hover: #c82333;
+
+    /* Nuovi colori più neutri per i bottoni della terza riga */
+    --button-external-ai-bg: #909090; /* Grigio medio */
+    --button-external-ai-hover: #7a7a7a; /* Grigio più scuro al hover */
+    --button-reset-bg: #c0c0c0; /* Grigio chiaro per "Reset Output" */
+    --button-reset-hover: #a8a8a8; /* Grigio leggermente più scuro al hover */
+    --button-reset-border: #909090; /* Bordo grigio per reset */
 }
 
 body {
@@ -80,8 +83,8 @@ main {
 
 #filter-container {
     display: flex;
-    flex-wrap: wrap; /* Permette ai campi di andare a capo su schermi più piccoli */
-    gap: 1rem; /* Spazio tra gli elementi */
+    flex-wrap: wrap;
+    gap: 1rem;
     margin-bottom: 2rem;
     padding-bottom: 1.5rem;
     border-bottom: 1px solid var(--border-color);
@@ -89,18 +92,18 @@ main {
 
 #category-filter,
 #search-input {
-    flex: 1; /* Permette agli input di espandersi */
+    flex: 1;
     padding: 0.8rem 1rem;
     border: 1px solid var(--border-color);
     border-radius: 8px;
     font-size: 1rem;
-    font-family: 'Inter', sans-serif; /* Font uniforme */
+    font-family: 'Inter', sans-serif;
     color: var(--dark-text);
 }
 
 #category-filter {
-    min-width: 150px; /* Larghezza minima per la select */
-    background-color: var(--card-bg); /* Sfondo bianco per la select */
+    min-width: 150px;
+    background-color: var(--card-bg);
 }
 
 #search-input::placeholder {
@@ -110,7 +113,7 @@ main {
 #prompt-container {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem; /* Spazio tra le card */
+    gap: 1.5rem;
     margin-bottom: var(--bottom-spacing);
 }
 
@@ -196,21 +199,21 @@ main {
 }
 
 .card-content {
-    display: none; /* Nascondi di default */
+    display: none;
     padding: 1.5rem;
     border-top: none;
     line-height: 1.7;
-    overflow: hidden; /* Assicurati che non ci siano overflow */
-    transition: max-height 0.5s ease-out, opacity 0.5s ease-out; /* Animazione più fluida */
+    overflow: hidden;
+    transition: max-height 0.5s ease-out, opacity 0.5s ease-out;
     max-height: 0;
     opacity: 0;
     visibility: hidden;
-    box-sizing: border-box; /* Include padding e border nella larghezza/altezza */
+    box-sizing: border-box;
 }
 
 .card-content.open {
     display: block;
-    max-height: 1000px; /* Un valore sufficientemente grande */
+    max-height: 1000px;
     opacity: 1;
     visibility: visible;
 }
@@ -231,24 +234,37 @@ main {
     font-size: 0.95rem;
 }
 
-.card-content input[type="text"],
+/* Stile per i campi input "esperienza", "genere", "testata" */
+.card-content input[type="text"] {
+    width: calc(100% - 22px); /* Larghezza piena meno padding e bordo */
+    padding: 0.8rem 10px; /* Padding standard per input */
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem; /* Dimensione del font standard */
+    font-family: 'Inter', sans-serif;
+    color: var(--dark-text);
+    box-sizing: border-box;
+    height: 44px; /* Altezza fissa per coerenza */
+}
+
+
 .card-content select,
-.card-content textarea { /* Applicato anche a textarea */
+.card-content textarea {
     width: calc(100% - 22px); /* Larghezza piena meno padding e bordo */
     padding: 0.8rem 10px;
     border: 1px solid var(--border-color);
     border-radius: 8px;
     font-size: 1rem;
-    font-family: 'Inter', sans-serif; /* Font uniforme */
+    font-family: 'Inter', sans-serif;
     color: var(--dark-text);
-    box-sizing: border-box; /* Importante per width: 100% */
+    box-sizing: border-box;
 }
 
 /* Stile specifico per textarea */
 .card-content textarea {
-    resize: vertical; /* Permette solo il ridimensionamento verticale */
-    min-height: 80px; /* Altezza minima */
-    max-height: 200px; /* Altezza massima */
+    resize: vertical;
+    min-height: 80px;
+    max-height: 200px;
 }
 
 
@@ -257,15 +273,15 @@ main {
     border: 1px solid var(--border-color);
     padding: 1.2rem;
     border-radius: 8px;
-    margin-top: 1.5rem; /* Aumentato il padding/margine superiore */
+    margin-top: 1.5rem;
     font-size: 1rem;
     color: #444;
-    white-space: pre-wrap; /* Mantiene la formattazione e va a capo */
-    word-wrap: break-word; /* Va a capo su parole lunghe */
-    font-family: 'Inter', sans-serif; /* Font uniforme per l'output */
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: 'Inter', sans-serif;
     line-height: 1.6;
-    max-height: 300px; /* Limita l'altezza dell'output */
-    overflow-y: auto; /* Aggiunge scroll se il contenuto è troppo lungo */
+    max-height: 300px;
+    overflow-y: auto;
 }
 
 .prompt-output h1, .prompt-output h2, .prompt-output h3, .prompt-output h4, .prompt-output h5, .prompt-output h6 {
@@ -320,24 +336,25 @@ main {
 
 /* --- Button Group Styling --- */
 .button-group {
-    margin-top: 2rem; /* Aumenta lo spazio sopra la prima riga di bottoni */
+    margin-top: 2rem; /* Spazio sopra la prima riga di bottoni */
     display: flex;
     flex-direction: column;
     gap: 1rem; /* Spazio tra le righe di bottoni */
 }
 
 .button-group-row,
-.post-output-buttons { /* Applica le regole anche al nuovo contenitore di bottoni sotto l'output */
+.post-output-buttons {
     display: flex;
-    gap: 0.8rem; /* Spazio tra i bottoni nella stessa riga */
-    flex-wrap: wrap; /* Permette ai bottoni di andare a capo su schermi piccoli */
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    align-items: center; /* Allinea verticalmente gli elementi */
 }
 
-/* Rende i bottoni uniformi in larghezza */
+/* Rende i bottoni uniformi in larghezza e altezza */
 .button-group-row button,
 .post-output-buttons button {
-    flex-grow: 1; /* Ogni bottone si espande per occupare lo spazio disponibile */
-    min-width: 120px; /* Larghezza minima per evitare che siano troppo stretti */
+    flex-grow: 1;
+    min-width: 120px;
     padding: 0.8rem 1rem;
     border-radius: 8px;
     font-size: 0.95rem;
@@ -345,7 +362,8 @@ main {
     cursor: pointer;
     transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
     text-align: center;
-    box-sizing: border-box; /* Include padding e border nella larghezza */
+    box-sizing: border-box;
+    height: 44px; /* Altezza fissa per tutti i bottoni */
 }
 
 
@@ -385,38 +403,40 @@ main {
 
 /* Stili per la terza riga di bottoni dopo l'output */
 .post-output-buttons {
-    margin-top: 1.5rem; /* Spazio aggiuntivo sopra questi bottoni */
+    margin-top: 1.5rem;
     display: flex;
     gap: 0.8rem;
     flex-wrap: wrap;
-    align-items: center; /* Allinea verticalmente gli elementi */
+    align-items: center;
 }
 
 .ai-external-control-group {
     display: flex;
-    flex-grow: 1; /* Si espande per occupare spazio */
+    flex-grow: 1;
     gap: 0.5rem;
-    min-width: 200px; /* Larghezza minima per il gruppo select+button */
+    min-width: 200px;
 }
 
 .ai-external-control-group .ai-choice-select {
-    flex-grow: 1; /* Il select si espande */
-    padding: 0.8rem 1rem;
+    flex-grow: 1;
+    padding: 0.8rem 10px; /* padding uguale agli input */
     border: 1px solid var(--border-color);
     border-radius: 8px;
     font-size: 0.95rem;
     font-family: 'Inter', sans-serif;
     color: var(--dark-text);
     background-color: var(--card-bg);
-    min-width: 80px; /* Larghezza minima per il select */
+    min-width: 80px;
+    height: 44px; /* Altezza fissa per il select */
+    box-sizing: border-box;
 }
 
 .ai-external-control-group .continue-on-ai-button {
-    flex-grow: 1; /* Il bottone si espande */
-    background-color: var(--button-external-ai-bg);
+    flex-grow: 1;
+    background-color: var(--button-external-ai-bg); /* Nuovo colore grigio */
     color: var(--light-text);
     border: none;
-    min-width: 100px; /* Larghezza minima per il bottone */
+    min-width: 100px;
 }
 .ai-external-control-group .continue-on-ai-button:hover {
     background-color: var(--button-external-ai-hover);
@@ -425,18 +445,18 @@ main {
 }
 
 .reset-button {
-    flex-grow: 1; /* Il bottone si espande */
-    background-color: var(--button-reset-bg);
-    color: var(--light-text);
-    border: 1px solid var(--button-reset-bg); /* Bordo per l'outline */
+    flex-grow: 1;
+    background-color: var(--button-reset-bg); /* Nuovo colore grigio chiaro */
+    color: var(--dark-text); /* Testo scuro per contrasto su grigio chiaro */
+    border: 1px solid var(--button-reset-border); /* Bordo per l'outline */
 }
 .reset-button:hover {
     background-color: var(--button-reset-hover);
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.4); /* Ombra rossa leggera */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Ombra generica per il reset */
 }
 .reset-button:focus {
-    outline: 2px solid var(--button-reset-bg); /* Outline rosso al focus */
+    outline: 2px solid var(--button-reset-border); /* Outline grigio al focus */
     outline-offset: 2px;
 }
 
@@ -486,20 +506,19 @@ main {
 
 /* Stile per indicatore di caricamento AI */
 .ai-loading-indicator {
-    display: flex; /* Cambiato a flex per centrare spinner e testo */
+    display: flex;
     justify-content: center;
     align-items: center;
     margin-top: 1rem;
     font-style: italic;
     color: #555;
     text-align: center;
-    font-size: 0.9rem; /* Riduci dimensione font per questo spinner */
+    font-size: 0.9rem;
 }
 
-/* Spinner per il caricamento AI, riutilizza lo stile esistente o creane uno nuovo */
 .ai-spinner {
     border: 3px solid rgba(0, 0, 0, 0.1);
-    border-left-color: var(--accent-color); /* Colore dello spinner AI */
+    border-left-color: var(--accent-color);
     border-radius: 50%;
     width: 20px;
     height: 20px;
@@ -564,7 +583,7 @@ main {
     overflow-y: auto;
     white-space: pre-wrap;
     text-align: left;
-    font-family: 'Inter', sans-serif; /* Font uniforme per il modale */
+    font-family: 'Inter', sans-serif;
     font-size: 0.95rem;
     color: #333;
     margin-bottom: 20px;
@@ -595,17 +614,17 @@ main {
 
     .main-content-wrapper, .feedback-section {
         margin: 1.5rem auto;
-        padding: 1rem; /* Riduci il padding per schermi piccoli */
+        padding: 1rem;
     }
 
     #filter-container {
-        flex-direction: column; /* Impila filtri su schermi piccoli */
+        flex-direction: column;
         gap: 0.8rem;
     }
 
     #category-filter,
     #search-input {
-        width: 100%; /* Larghezza piena */
+        width: 100%;
     }
 
     .card-header h3 {
@@ -618,18 +637,18 @@ main {
 
     .button-group-row,
     .post-output-buttons {
-        flex-direction: column; /* Impila i bottoni su schermi piccoli */
+        flex-direction: column;
         gap: 0.6rem;
     }
 
     .button-group-row button,
     .post-output-buttons button {
-        width: 100%; /* Larghezza piena per i bottoni impilati */
-        min-width: unset; /* Rimuovi la larghezza minima */
+        width: 100%;
+        min-width: unset;
     }
 
     .ai-external-control-group {
-        flex-direction: column; /* Impila select e button su schermi piccoli */
+        flex-direction: column;
         width: 100%;
         min-width: unset;
     }
