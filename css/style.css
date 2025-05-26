@@ -13,7 +13,6 @@
     --accordion-header-bg: #e9ecef;
     --accordion-header-hover: #dee2e6;
     --accordion-border: #ced4da;
-    /* Colore per il feedback button ora è lo stesso del secondary-color (verde) */
     --feedback-button-color: var(--secondary-color);
     --feedback-button-hover: #449d48; /* tonalità più scura del verde */
     --content-max-width: 900px; /* Larghezza massima desiderata per il contenuto */
@@ -36,7 +35,7 @@ body {
 header {
     background-color: var(--primary-color);
     color: var(--light-text);
-    padding: 3rem var(--main-padding); /* Usa la variabile per il padding */
+    padding: 3rem var(--main-padding);
     text-align: center;
     box-shadow: 0 4px 15px var(--shadow-medium);
 }
@@ -52,19 +51,17 @@ header p {
     opacity: 0.9;
 }
 
-/* Il main diventa un contenitore che si estende per tutta la larghezza */
 main {
-    width: 100%; /* Estende su tutta la larghezza disponibile */
-    padding: 2.5rem 0; /* Padding verticale, padding orizzontale gestito da .main-content */
+    width: 100%;
+    padding: 2.5rem 0;
     flex-grow: 1;
-    box-sizing: border-box; /* Include padding e border nella larghezza */
+    box-sizing: border-box;
 }
 
-/* Nuovo contenitore interno per il contenuto principale */
 .main-content-wrapper {
-    max-width: var(--content-max-width); /* Imposta la larghezza massima del contenuto */
-    margin: 0 auto; /* Centra il contenitore */
-    padding: 0 var(--main-padding) var(--bottom-spacing); /* Aggiunge padding ai lati e sotto */
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+    padding: 0 var(--main-padding) var(--bottom-spacing);
     background: var(--card-bg);
     border-radius: 12px;
     box-shadow: 0 5px 20px var(--shadow-light);
@@ -76,7 +73,7 @@ main {
     gap: 1.5rem;
     margin-bottom: 2.5rem;
     flex-wrap: wrap;
-    padding-top: var(--main-padding); /* Spazio sopra il filtro */
+    padding-top: var(--main-padding);
 }
 
 #category-filter, #search-input {
@@ -205,9 +202,7 @@ textarea {
 /* Contenitore generale per tutti i gruppi di bottoni */
 .button-group {
     margin-top: 1.5rem;
-    display: flex;
-    gap: 0.8rem;
-    flex-wrap: wrap;
+    /* Rimosso display flex e gap qui, perché gestiti dalle .button-group-row */
 }
 
 button {
@@ -245,12 +240,32 @@ button:active {
     border-color: #449d48;
 }
 
+/* Nuovo stile per il bottone di reset */
+.reset-button {
+    background-color: #dc3545; /* Rosso */
+    color: var(--light-text);
+    border: none;
+    padding: 0.8rem 1.8rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.reset-button:hover {
+    background-color: #c82333;
+    transform: translateY(-2px);
+}
+
+
 .prompt-output {
     background-color: #eef2f6;
     padding: 1.2rem;
     margin-top: 1.5rem;
     border-radius: 8px;
-    font-family: sans-serif; /* Cambiato per una migliore leggibilità del testo generato */
+    font-family: sans-serif;
     font-size: 0.95rem;
     color: #444;
     border: 1px dashed var(--border-color);
@@ -269,9 +284,9 @@ button:active {
 /* Stili per la sezione Feedback */
 .feedback-section {
     width: 100%;
-    max-width: var(--content-max-width); /* Allineato alla larghezza del contenuto principale */
+    max-width: var(--content-max-width);
     margin: 2.5rem auto;
-    padding: var(--main-padding); /* Stesso padding della larghezza del contenuto */
+    padding: var(--main-padding);
     background: var(--card-bg);
     border-radius: 12px;
     box-shadow: 0 5px 20px var(--shadow-light);
@@ -311,12 +326,11 @@ button:active {
 }
 
 /* --- INIZIO AGGIUNTE PER SPINNER GLOBALE --- */
-/* Stili per lo Spinner */
 .spinner-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100px; /* Assicura che ci sia spazio per lo spinner */
+    min-height: 100px;
     margin-top: 2rem;
     font-size: 1.1rem;
     color: var(--primary-color);
@@ -324,12 +338,12 @@ button:active {
 
 .spinner {
     border: 4px solid rgba(0, 0, 0, 0.1);
-    border-left-color: var(--primary-color); /* Colore dello spinner */
+    border-left-color: var(--primary-color);
     border-radius: 50%;
     width: 30px;
     height: 30px;
     animation: spin 1s linear infinite;
-    margin-right: 10px; /* Spazio tra spinner e testo */
+    margin-right: 10px;
 }
 
 @keyframes spin {
@@ -337,14 +351,12 @@ button:active {
     100% { transform: rotate(360deg); }
 }
 
-/* Classe per nascondere il caricamento */
 .hidden {
     display: none !important;
 }
 /* --- FINE AGGIUNTE PER SPINNER GLOBALE --- */
 
 /* --- INIZIO AGGIUNTE PER GENERAZIONE RISPOSTA AI --- */
-/* Nuovo stile per il bottone AI */
 .ai-generate-button {
     background-color: #007bff; /* Un blu per distinguere */
     color: var(--light-text);
@@ -368,22 +380,20 @@ button:active {
     box-shadow: none;
 }
 
-/* Stile per indicatore di caricamento AI */
 .ai-loading-indicator {
-    display: flex; /* Cambiato a flex per centrare spinner e testo */
+    display: flex;
     justify-content: center;
     align-items: center;
     margin-top: 1rem;
     font-style: italic;
     color: #555;
     text-align: center;
-    font-size: 0.9rem; /* Riduci dimensione font per questo spinner */
+    font-size: 0.9rem;
 }
 
-/* Spinner per il caricamento AI, riutilizza lo stile esistente o creane uno nuovo */
 .ai-spinner {
     border: 3px solid rgba(0, 0, 0, 0.1);
-    border-left-color: #007bff; /* Colore dello spinner AI */
+    border-left-color: #007bff;
     border-radius: 50%;
     width: 20px;
     height: 20px;
@@ -394,6 +404,84 @@ button:active {
 }
 /* --- FINE AGGIUNTE PER GENERAZIONE RISPOSTA AI --- */
 
+
+/* Stili per il Modale personalizzato (Copy Confirmation) */
+.custom-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Sfondo semi-trasparente */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.custom-modal-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.custom-modal-content {
+    background-color: var(--card-bg);
+    padding: 25px 35px;
+    border-radius: 12px;
+    box-shadow: 0 5px 25px var(--shadow-medium);
+    max-width: 500px;
+    text-align: center;
+    transform: translateY(-20px);
+    transition: transform 0.3s ease;
+    position: relative;
+}
+
+.custom-modal-overlay.show .custom-modal-content {
+    transform: translateY(0);
+}
+
+.custom-modal-content h3 {
+    color: var(--primary-color);
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.4rem;
+}
+
+.custom-modal-content pre {
+    background-color: #f2f2f2;
+    border: 1px solid var(--border-color);
+    padding: 15px;
+    border-radius: 8px;
+    max-height: 250px;
+    overflow-y: auto;
+    white-space: pre-wrap; /* Mantiene la formattazione del testo */
+    text-align: left;
+    font-family: monospace;
+    font-size: 0.95rem;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.custom-modal-content .close-button {
+    background-color: var(--primary-color);
+    color: var(--light-text);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: background-color 0.2s ease;
+}
+
+.custom-modal-content .close-button:hover {
+    background-color: #1a2235;
+}
+
+
 @media (max-width: 768px) {
     header h1 {
         font-size: 2rem;
@@ -401,12 +489,11 @@ button:active {
 
     .main-content-wrapper, .feedback-section {
         margin: 1.5rem auto;
-        padding: 1rem; /* Riduci il padding per schermi piccoli */
+        padding: 1rem;
     }
 
-    /* Assicurati che lo spazio sotto sia ridotto anche su mobile se necessario */
     .main-content-wrapper {
-        padding-bottom: 1.5rem; /* Adatta lo spazio per mobile */
+        padding-bottom: 1.5rem;
     }
 
     #filter-container {
@@ -415,12 +502,11 @@ button:active {
         padding-top: 1rem;
     }
 
-    .button-group {
+    .button-group-row {
         flex-direction: column;
         gap: 0.5rem;
     }
-
-    button {
+    .button-group-row button, .button-group-row a {
         width: 100%;
     }
 }
