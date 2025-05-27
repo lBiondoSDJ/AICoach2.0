@@ -1,6 +1,7 @@
 // js/ui.js
 
 import { UI_ELEMENTS, GLOBAL_STATE, AI_OPTIONS } from './constants.js';
+import { callGeminiAPI } from './api.js'; // Importa callGeminiAPI direttamente
 
 // Funzioni per il modale di conferma copia
 export function showCustomModal(title, content) {
@@ -69,7 +70,7 @@ export function confirmAISelection() {
 }
 
 
-export function createCard(titolo, descrizione, promptTemplate, categoria, labelTesto, placeholderText, labelLang, index, callbacks) {
+export function createCard(titolo, descrizione, promptTemplate, categoria, labelTesto, placeholderText, labelLang, labelCharacters, index, callbacks) {
     const card = document.createElement("div");
     card.className = "prompt-card";
     card.dataset.categoria = categoria?.toLowerCase() || "";
@@ -143,7 +144,8 @@ export function createCard(titolo, descrizione, promptTemplate, categoria, label
             testata: testataInput.value,
             areaText: cardContent.querySelector(`#area-text-${index}`)?.value,
             lang: cardContent.querySelector(`#lang-${index}`)?.value,
-            dettagli: cardContent.querySelector(`#dettagli-${index}`)?.value
+            dettagli: cardContent.querySelector(`#dettagli-${index}`)?.value,
+            characters: cardContent.querySelector(`#characters-${index}`)?.value // Nuovo input characters
         };
         callbacks.onGeneratePrompt(promptTemplate, inputs, output);
     };
@@ -230,6 +232,19 @@ export function createCard(titolo, descrizione, promptTemplate, categoria, label
         cardContent.appendChild(langSelect);
     }
 
+    // Nuovo campo per il numero di battute, solo per la card "Riduzione del numero di battute"
+    if (titolo === "Riduzione del numero di battute" && promptTemplate.includes("[CHARACTERS]")) {
+        const charactersLabel = document.createElement("label");
+        charactersLabel.textContent = typeof labelCharacters === 'string' && labelCharacters.trim() !== '' ? labelCharacters : "Numero di battute desiderate:";
+        const charactersInput = document.createElement("input");
+        charactersInput.type = "number"; // Imposta il tipo di input su "number"
+        charactersInput.placeholder = "es. 500";
+        charactersInput.id = `characters-${index}`;
+        cardContent.appendChild(charactersLabel);
+        cardContent.appendChild(charactersInput);
+    }
+
+
     if (titolo === "Correggi testi da allegati PDF" || titolo === "Correzione bozze") {
         const note = document.createElement("p");
         note.className = "note";
@@ -308,6 +323,7 @@ export function renderCards(prompts, filterCategoria = "", searchTerm = "") {
     UI_ELEMENTS.promptContainer.innerHTML = "";
 
     const filteredPrompts = prompts.filter((row) => {
+        // Assicurati che la riga abbia almeno 6 colonne per i campi standard
         if (row.length < 6) {
             console.warn("Riga del foglio con meno di 6 colonne, saltata in fase di filtro:", row);
             return false;
@@ -324,8 +340,9 @@ export function renderCards(prompts, filterCategoria = "", searchTerm = "") {
         UI_ELEMENTS.promptContainer.innerHTML = '<p style="text-align: center; color: #666; font-style: italic; margin-top: 3rem;">Nessun prompt trovato con i criteri di ricerca selezionati.</p>';
     } else {
         filteredPrompts.forEach((row, i) => {
-            const [titolo, descrizione, promptTemplate, categoria, labelTesto, placeholderText, labelLang] = row;
-            const card = createCard(titolo, descrizione, promptTemplate, categoria, labelTesto, placeholderText, labelLang, i, {
+            // Modificato per includere la nuova colonna per labelCharacters (ottava colonna, indice 7)
+            const [titolo, descrizione, promptTemplate, categoria, labelTesto, placeholderText, labelLang, labelCharacters] = row;
+            const card = createCard(titolo, descrizione, promptTemplate, categoria, labelTesto, placeholderText, labelLang, labelCharacters, i, {
                 onGeneratePrompt: (template, inputs, outputElement) => {
                     let finalPrompt = template
                         .replace(/\[ESPERIENZA\]/g, inputs.esperienza || "[ESPERIENZA]")
@@ -340,6 +357,10 @@ export function renderCards(prompts, filterCategoria = "", searchTerm = "") {
                     }
                     if (template.includes("[DETTAGLI]")) {
                         finalPrompt = finalPrompt.replace(/\[DETTAGLI\]/g, inputs.dettagli || "");
+                    }
+                    // Nuova sostituzione per [CHARACTERS]
+                    if (template.includes("[CHARACTERS]")) {
+                        finalPrompt = finalPrompt.replace(/\[CHARACTERS\]/g, inputs.characters || "");
                     }
 
                     GLOBAL_STATE.currentGeneratedPrompt = finalPrompt;
@@ -366,7 +387,6 @@ export function renderCards(prompts, filterCategoria = "", searchTerm = "") {
                     outputElement.style.color = '#888';
 
                     try {
-                        const { callGeminiAPI } = await import('./api.js'); // Importa api.js dinamicamente
                         const aiResponse = await callGeminiAPI(GLOBAL_STATE.currentGeneratedPrompt);
                         if (aiResponse) {
                             GLOBAL_STATE.currentAIResponse = aiResponse;
