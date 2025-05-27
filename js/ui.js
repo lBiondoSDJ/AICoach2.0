@@ -70,7 +70,7 @@ export function confirmAISelection() {
 }
 
 
-export function createCard(titolo, descrizione, promptTemplate, categoria, labelTesto, placeholderText, labelLang, labelCharacters, index, callbacks) {
+export function createCard(titolo, descrizione, promptTemplate, categoria, labelTesto, placeholderText, labelLang, labelCharacters, index, callbacks) { // MODIFICATO: aggiunto labelCharacters
     const card = document.createElement("div");
     card.className = "prompt-card";
     card.dataset.categoria = categoria?.toLowerCase() || "";
@@ -340,8 +340,9 @@ export function renderCards(prompts, filterCategoria = "", searchTerm = "") {
         UI_ELEMENTS.promptContainer.innerHTML = '<p style="text-align: center; color: #666; font-style: italic; margin-top: 3rem;">Nessun prompt trovato con i criteri di ricerca selezionati.</p>';
     } else {
         filteredPrompts.forEach((row, i) => {
-            // Modificato per includere la nuova colonna per labelCharacters (ottava colonna, indice 7)
+            // MODIFICATO: aggiunto labelCharacters nella destrutturazione della riga
             const [titolo, descrizione, promptTemplate, categoria, labelTesto, placeholderText, labelLang, labelCharacters] = row;
+            // MODIFICATO: aggiunto labelCharacters nella chiamata a createCard
             const card = createCard(titolo, descrizione, promptTemplate, categoria, labelTesto, placeholderText, labelLang, labelCharacters, i, {
                 onGeneratePrompt: (template, inputs, outputElement) => {
                     let finalPrompt = template
