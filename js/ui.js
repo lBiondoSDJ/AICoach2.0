@@ -70,7 +70,7 @@ export function confirmAISelection() {
 }
 
 
-export function createCard(titolo, descrizione, promptTemplate, categoria, labelTesto, placeholderText, labelLang, labelCharacters, index, callbacks) { // MODIFICATO: aggiunto labelCharacters
+export function createCard(titolo, descrizione, promptTemplate, categoria, labelTesto, placeholderText, labelLang, labelCharacters, index, callbacks) {
     const card = document.createElement("div");
     card.className = "prompt-card";
     card.dataset.categoria = categoria?.toLowerCase() || "";
@@ -145,7 +145,7 @@ export function createCard(titolo, descrizione, promptTemplate, categoria, label
             areaText: cardContent.querySelector(`#area-text-${index}`)?.value,
             lang: cardContent.querySelector(`#lang-${index}`)?.value,
             dettagli: cardContent.querySelector(`#dettagli-${index}`)?.value,
-            characters: cardContent.querySelector(`#characters-${index}`)?.value // Nuovo input characters
+            characters: cardContent.querySelector(`#characters-${index}`)?.value
         };
         callbacks.onGeneratePrompt(promptTemplate, inputs, output);
     };
@@ -193,8 +193,8 @@ export function createCard(titolo, descrizione, promptTemplate, categoria, label
     cardContent.appendChild(testataLabel);
     cardContent.appendChild(testataInput);
 
-    const shouldShowTextArea = promptTemplate.includes("[AREA_TEXT]");
-    if (shouldShowTextArea) {
+    // LOGICA AGGIORNATA: I campi vengono visualizzati solo se il loro placeholder è presente nel promptTemplate
+    if (promptTemplate.includes("[AREA_TEXT]")) {
         const testoLabel = document.createElement("label");
         const testoInput = document.createElement("textarea");
         testoInput.rows = 4;
@@ -232,30 +232,20 @@ export function createCard(titolo, descrizione, promptTemplate, categoria, label
         cardContent.appendChild(langSelect);
     }
 
-    // Nuovo campo per il numero di battute, solo per la card "Riduzione del numero di battute"
-    if (titolo === "Riduzione del numero di battute" && promptTemplate.includes("[CHARACTERS]")) {
+    // LOGICA AGGIORNATA: Il campo CHARACTERS viene visualizzato se il placeholder è presente nel template
+    if (promptTemplate.includes("[CHARACTERS]")) {
         const charactersLabel = document.createElement("label");
         charactersLabel.textContent = typeof labelCharacters === 'string' && labelCharacters.trim() !== '' ? labelCharacters : "Numero di battute desiderate:";
         const charactersInput = document.createElement("input");
-        charactersInput.type = "number"; // Imposta il tipo di input su "number"
+        charactersInput.type = "number";
         charactersInput.placeholder = "es. 500";
         charactersInput.id = `characters-${index}`;
         cardContent.appendChild(charactersLabel);
         cardContent.appendChild(charactersInput);
     }
 
-
-    if (titolo === "Correggi testi da allegati PDF" || titolo === "Correzione bozze") {
-        const note = document.createElement("p");
-        note.className = "note";
-        note.textContent = "Ricordati di fornire il file o il testo da correggere alla tua IA di fiducia insieme al tuo prompt.";
-        cardContent.appendChild(note);
-    } else if (titolo === "Ricava testi da allegati") {
-        const note = document.createElement("p");
-        note.className = "note";
-        note.textContent = "Ricordati di fornire il file da cui vuoi che l'AI ricavi il testo (può essere un png, un jpg, un pdf...).";
-        cardContent.appendChild(note);
-
+    // LOGICA AGGIORNATA: Se il prompt template include [DETTAGLI], mostriamo il campo e la nota generica.
+    if (promptTemplate.includes("[DETTAGLI]")) {
         const dettagliLabel = document.createElement("label");
         dettagliLabel.textContent = "Altri dettagli (se presenti nel prompt originale):";
         const dettagliInput = document.createElement("input");
@@ -263,7 +253,17 @@ export function createCard(titolo, descrizione, promptTemplate, categoria, label
         dettagliInput.id = `dettagli-${index}`;
         cardContent.appendChild(dettagliLabel);
         cardContent.appendChild(dettagliInput);
+
+        // Aggiungiamo una nota generica per i prompt che richiedono allegati/contesto esterno
+        // se contengono [DETTAGLI] o [AREA_TEXT] (che spesso implica un testo da allegare)
+        if (promptTemplate.includes("[AREA_TEXT]") || promptTemplate.includes("[DETTAGLI]")) {
+            const note = document.createElement("p");
+            note.className = "note";
+            note.textContent = "Ricorda: Per questo prompt, dovrai fornire il testo/file da elaborare alla tua IA di fiducia insieme al prompt generato.";
+            cardContent.appendChild(note);
+        }
     }
+
 
     buttonGroupRow1.appendChild(generatePromptButton);
     buttonGroupRow1.appendChild(generateAIResponseButton);
@@ -324,6 +324,7 @@ export function renderCards(prompts, filterCategoria = "", searchTerm = "") {
 
     const filteredPrompts = prompts.filter((row) => {
         // Assicurati che la riga abbia almeno 6 colonne per i campi standard
+        // Ora la riga può avere fino a 8 colonne (indice 7 per labelCharacters)
         if (row.length < 6) {
             console.warn("Riga del foglio con meno di 6 colonne, saltata in fase di filtro:", row);
             return false;
@@ -340,9 +341,7 @@ export function renderCards(prompts, filterCategoria = "", searchTerm = "") {
         UI_ELEMENTS.promptContainer.innerHTML = '<p style="text-align: center; color: #666; font-style: italic; margin-top: 3rem;">Nessun prompt trovato con i criteri di ricerca selezionati.</p>';
     } else {
         filteredPrompts.forEach((row, i) => {
-            // MODIFICATO: aggiunto labelCharacters nella destrutturazione della riga
             const [titolo, descrizione, promptTemplate, categoria, labelTesto, placeholderText, labelLang, labelCharacters] = row;
-            // MODIFICATO: aggiunto labelCharacters nella chiamata a createCard
             const card = createCard(titolo, descrizione, promptTemplate, categoria, labelTesto, placeholderText, labelLang, labelCharacters, i, {
                 onGeneratePrompt: (template, inputs, outputElement) => {
                     let finalPrompt = template
@@ -359,7 +358,6 @@ export function renderCards(prompts, filterCategoria = "", searchTerm = "") {
                     if (template.includes("[DETTAGLI]")) {
                         finalPrompt = finalPrompt.replace(/\[DETTAGLI\]/g, inputs.dettagli || "");
                     }
-                    // Nuova sostituzione per [CHARACTERS]
                     if (template.includes("[CHARACTERS]")) {
                         finalPrompt = finalPrompt.replace(/\[CHARACTERS\]/g, inputs.characters || "");
                     }
@@ -367,7 +365,7 @@ export function renderCards(prompts, filterCategoria = "", searchTerm = "") {
                     GLOBAL_STATE.currentGeneratedPrompt = finalPrompt;
                     outputElement.innerHTML = marked.parse(finalPrompt);
                     outputElement.style.color = '#444';
-                    GLOBAL_STATE.currentAIResponse = ""; // Resetta la risposta AI
+                    GLOBAL_STATE.currentAIResponse = "";
                 },
                 onCopyPrompt: () => {
                     const textToCopy = GLOBAL_STATE.currentGeneratedPrompt;
@@ -433,7 +431,7 @@ export function renderCards(prompts, filterCategoria = "", searchTerm = "") {
 }
 
 export function populateCategoryFilter(categories) {
-    UI_ELEMENTS.categoryFilter.innerHTML = '<option value="">Tutte le categorie</option>'; // Reset
+    UI_ELEMENTS.categoryFilter.innerHTML = '<option value="">Tutte le categorie</option>';
     Array.from(categories).sort().forEach(cat => {
         const option = document.createElement("option");
         option.value = cat;
@@ -444,7 +442,7 @@ export function populateCategoryFilter(categories) {
 
 export function showLoadingSpinner() {
     UI_ELEMENTS.loadingSpinner.classList.remove("hidden");
-    UI_ELEMENTS.promptContainer.innerHTML = ''; // Clear existing content
+    UI_ELEMENTS.promptContainer.innerHTML = '';
 }
 
 export function hideLoadingSpinner() {
@@ -460,9 +458,6 @@ function copyTextToClipboard(text) {
     document.body.removeChild(tempTextarea);
 }
 
-// Espone le funzioni del modale a livello globale per l'onclick nell'HTML
-// Questo è un workaround necessario perché gli onclick in HTML non possono importare moduli ES6.
-// In un'applicazione React/Vue/Angular o con un bundler, questo non sarebbe necessario.
 window.ui = {
     showCustomModal,
     hideCustomModal,
